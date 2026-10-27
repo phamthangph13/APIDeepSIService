@@ -1,0 +1,35 @@
+:root {
+  --paper: #f2ede3;
+  --paper-2: #e9e2d3;
+  --paper-3: #fbf7ee;
+  --ink: #171812;
+  --ink-2: #2c2e26;
+  --muted: #6c6e61;
+  --muted-2: #8a8b7e;
+  --line: #d3cbb9;
+  --line-strong: #b3aa97;
+  --moss: #244136;
+  --moss-2: #35584a;
+  --sage: #c7d1be;
+  --sage-2: #aebba4;
+  --clay: #b65f43;
+  --clay-2: #d3a08c;
+  --ochre: #c9a961;
+  --ochre-2: #d6c08a;
+  --blue: #9fb2b4;
+  --lavender: #bdb8c9;
+  --white: #fcf9f1;
+  --font-display: "Lora", Georgia, "Times New Roman", serif;
+  --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --container: 1440px;
+  --gutter: clamp(20px, 4vw, 64px);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 22px;
+  --shadow-hard: 5px 5px 0 var(--ink);
+  --shadow-soft: 4px 4px 0 rgba(23, 24, 18, 0.12);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.18, 1);
+  color-scheme: light;
+}

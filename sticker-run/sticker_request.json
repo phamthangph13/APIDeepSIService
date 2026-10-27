@@ -1,0 +1,69 @@
+{
+  "pack_name": "deepsi-agent-ui",
+  "template": "soft-ui-glyphs",
+  "finish": "clean-flat",
+  "style": "soft-ui-glyphs",
+  "canvas_size": 512,
+  "padding_ratio": 0.1,
+  "chroma_key": "#ff00ff",
+  "groups": [
+    {
+      "id": "core",
+      "source": "decoded/core.png",
+      "names": [
+        "key",
+        "bolt",
+        "shield",
+        "nodes",
+        "coin",
+        "terminal"
+      ]
+    },
+    {
+      "id": "infrastructure",
+      "source": "decoded/infrastructure.png",
+      "names": [
+        "globe",
+        "chart",
+        "chat",
+        "cube",
+        "plug",
+        "lock"
+      ]
+    },
+    {
+      "id": "signals",
+      "source": "decoded/signals.png",
+      "names": [
+        "spark",
+        "arrow",
+        "plane",
+        "cloud",
+        "check",
+        "copy"
+      ]
+    },
+    {
+      "id": "controls",
+      "source": "decoded/controls.png",
+      "names": [
+        "plus",
+        "trash",
+        "eye",
+        "logout",
+        "search",
+        "book"
+      ]
+    },
+    {
+      "id": "extras",
+      "source": "decoded/extras.png",
+      "names": [
+        "code",
+        "external",
+        "user",
+        "star"
+      ]
+    }
+  ]
+}

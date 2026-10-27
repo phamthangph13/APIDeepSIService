@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" width="1400" height="1000">
+  <rect width="1400" height="1000" fill="#FF00FF"/>
+  <g transform="translate(80 80) scale(2.5)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <circle cx="80" cy="80" r="64" fill="#D6C08A"/>
+  <g fill="none" stroke="#1C1D18" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="80" cy="80" r="42"/><path d="M80 58v44"/><path d="M58 80h44"/>
+  </g>
+</svg></g>
+<g transform="translate(500 80) scale(2.5)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <path d="M16 132V80a64 64 0 0 1 128 0v52q0 12-12 12H28q-12 0-12-12Z" fill="#D3A08C"/>
+  <g fill="none" stroke="#1C1D18" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M48 60h64"/><path d="M62 60V48h36v12"/><path d="m54 60 6 60h40l6-60"/><path d="M72 76v26"/><path d="M88 76v26"/>
+  </g>
+</svg></g>
+<g transform="translate(920 80) scale(2.5)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <rect x="8" y="40" width="144" height="80" rx="40" fill="#AFC0C2"/>
+  <g fill="none" stroke="#1C1D18" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M30 80c14-22 30-32 50-32s36 10 50 32c-14 22-30 32-50 32S44 102 30 80Z"/><circle cx="80" cy="80" r="16"/><circle cx="80" cy="80" r="4" fill="#1C1D18" stroke="none"/>
+  </g>
+</svg></g>
+<g transform="translate(100 580) scale(2.5)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <rect x="16" y="16" width="128" height="128" rx="28" fill="#C7D1BE"/>
+  <g fill="none" stroke="#1C1D18" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M66 40H42a10 10 0 0 0-10 10v60a10 10 0 0 0 10 10h24"/><path d="M84 80h42"/><path d="m108 62 18 18-18 18"/>
+  </g>
+</svg></g>
+<g transform="translate(520 580) scale(2.5)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <circle cx="80" cy="80" r="64" fill="#C3BED0"/>
+  <g fill="none" stroke="#1C1D18" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="70" cy="70" r="30"/><path d="m92 92 30 30"/>
+  </g>
+</svg></g>
+<g transform="translate(940 580) scale(2.5)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <path d="M16 132V80a64 64 0 0 1 128 0v52q0 12-12 12H28q-12 0-12-12Z" fill="#D6C08A"/>
+  <g fill="none" stroke="#1C1D18" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 48c16-6 32-4 48 6 16-10 32-12 48-6v64c-16-6-32-4-48 6-16-10-32-12-48-6Z"/><path d="M80 54v64"/>
+  </g>
+</svg></g>
+</svg>

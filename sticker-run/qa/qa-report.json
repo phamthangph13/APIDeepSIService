@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "ok": true,
+  "pack_name": "deepsi-agent-ui",
+  "template": "soft-ui-glyphs",
+  "finish": "clean-flat",
+  "style": "soft-ui-glyphs",
+  "chroma_key": "#ff00ff",
+  "groups": [
+    {
+      "id": "core",
+      "source": "decoded/core.png",
+      "expected_count": 6,
+      "keyed_source": "work/keyed/core.png",
+      "ok": true,
+      "found_count": 6,
+      "boxes": [
+        [
+          120,
+          120,
+          440,
+          440
+        ],
+        [
+          540,
+          120,
+          860,
+          440
+        ],
+        [
+          960,
+          120,
+          1280,
+          440
+        ],
+        [
+          110,
+          657,
+          490,
+          903
+        ],
+        [
+          560,
+          620,
+          880,
+          940
+        ],
+        [
+          950,
+          660,
+          1330,
+          900
+        ]
+      ]
+    },
+    {
+      "id": "infrastructure",
+      "source": "decoded/infrastructure.png",
+      "expected_count": 6,
+      "keyed_source": "work/keyed/infrastructure.png",
+      "ok": true,
+      "found_count": 6,
+      "boxes": [
+        [
+          120,
+          120,
+          440,
+          440
+        ],
+        [
+          540,
+          120,
+          860,
+          440
+        ],
+        [
+          940,
+          180,
+          1300,
+          413
+        ],
+        [
+          140,
+          620,
+          460,
+          940
+        ],
+        [
+          540,
+          677,
+          900,
+          933
+        ],
+        [
+          980,
+          620,
+          1300,
+          940
+        ]
+      ]
+    },
+    {
+      "id": "signals",
+      "source": "decoded/signals.png",
+      "expected_count": 6,
+      "keyed_source": "work/keyed/signals.png",
+      "ok": true,
+      "found_count": 6,
+      "boxes": [
+        [
+          120,
+          120,
+          440,
+          440
+        ],
+        [
+          510,
+          157,
+          890,
+          400
+        ],
+        [
+          960,
+          120,
+          1280,
+          440
+        ],
+        [
+          120,
+          660,
+          480,
+          883
+        ],
+        [
+          560,
+          620,
+          880,
+          940
+        ],
+        [
+          980,
+          620,
+          1300,
+          940
+        ]
+      ]
+    },
+    {
+      "id": "controls",
+      "source": "decoded/controls.png",
+      "expected_count": 6,
+      "keyed_source": "work/keyed/controls.png",
+      "ok": true,
+      "found_count": 6,
+      "boxes": [
+        [
+          120,
+          120,
+          440,
+          440
+        ],
+        [
+          540,
+          120,
+          860,
+          440
+        ],
+        [
+          940,
+          180,
+          1300,
+          380
+        ],
+        [
+          140,
+          620,
+          460,
+          940
+        ],
+        [
+          560,
+          620,
+          880,
+          940
+        ],
+        [
+          980,
+          620,
+          1300,
+          940
+        ]
+      ]
+    },
+    {
+      "id": "extras",
+      "source": "decoded/extras.png",
+      "expected_count": 4,
+      "keyed_source": "work/keyed/extras.png",
+      "ok": true,
+      "found_count": 4,
+      "boxes": [
+        [
+          110,
+          160,
+          490,
+          400
+        ],
+        [
+          560,
+          120,
+          880,
+          440
+        ],
+        [
+          160,
+          620,
+          480,
+          940
+        ],
+        [
+          580,
+          620,
+          900,
+          940
+        ]
+      ]
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "outputs": {
+    "manifest": "final/manifest.json",
+    "contact_sheet": "qa/contact-sheet.png",
+    "sticker_count": 28
+  }
+}

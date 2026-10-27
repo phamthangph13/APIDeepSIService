@@ -1,0 +1,72 @@
+{
+  "jobs": [
+    {
+      "id": "core",
+      "status": "complete",
+      "depends_on": [],
+      "prompt_file": "prompts/core.md",
+      "input_images": [
+        "references/canonical-anchor.png"
+      ],
+      "output_path": "decoded/core.png",
+      "source_path": "design/sticker-pack/svg/core.svg",
+      "note": "Deterministic vector source rendered on a flat magenta chroma sheet. No image-generation provider was available in the environment; geometry and palette follow the soft-ui-glyphs / clean-flat contract."
+    },
+    {
+      "id": "infrastructure",
+      "status": "complete",
+      "depends_on": [
+        "core"
+      ],
+      "prompt_file": "prompts/infrastructure.md",
+      "input_images": [
+        "references/canonical-anchor.png"
+      ],
+      "output_path": "decoded/infrastructure.png",
+      "source_path": "design/sticker-pack/svg/infrastructure.svg",
+      "note": "Deterministic vector source rendered on a flat magenta chroma sheet. No image-generation provider was available in the environment; geometry and palette follow the soft-ui-glyphs / clean-flat contract."
+    },
+    {
+      "id": "signals",
+      "status": "complete",
+      "depends_on": [
+        "core"
+      ],
+      "prompt_file": "prompts/signals.md",
+      "input_images": [
+        "references/canonical-anchor.png"
+      ],
+      "output_path": "decoded/signals.png",
+      "source_path": "design/sticker-pack/svg/signals.svg",
+      "note": "Deterministic vector source rendered on a flat magenta chroma sheet. No image-generation provider was available in the environment; geometry and palette follow the soft-ui-glyphs / clean-flat contract."
+    },
+    {
+      "id": "controls",
+      "status": "complete",
+      "depends_on": [
+        "core"
+      ],
+      "prompt_file": "prompts/controls.md",
+      "input_images": [
+        "references/canonical-anchor.png"
+      ],
+      "output_path": "decoded/controls.png",
+      "source_path": "design/sticker-pack/svg/controls.svg",
+      "note": "Deterministic vector source rendered on a flat magenta chroma sheet. No image-generation provider was available in the environment; geometry and palette follow the soft-ui-glyphs / clean-flat contract."
+    },
+    {
+      "id": "extras",
+      "status": "complete",
+      "depends_on": [
+        "core"
+      ],
+      "prompt_file": "prompts/extras.md",
+      "input_images": [
+        "references/canonical-anchor.png"
+      ],
+      "output_path": "decoded/extras.png",
+      "source_path": "design/sticker-pack/svg/extras.svg",
+      "note": "Deterministic vector source rendered on a flat magenta chroma sheet. No image-generation provider was available in the environment; geometry and palette follow the soft-ui-glyphs / clean-flat contract."
+    }
+  ]
+}

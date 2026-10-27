@@ -1,0 +1,30 @@
+{
+  "name": "deepsi-agent-service",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "DeepSI Agent — API LLM cho agent của mọi hệ thống. Giao diện dịch vụ tại service.deepsi.space.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "stickers": "node scripts/build-stickers.mjs"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "sharp": "^0.34.4",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.5"
+  }
+}

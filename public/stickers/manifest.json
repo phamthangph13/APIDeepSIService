@@ -1,0 +1,259 @@
+{
+  "pack": "deepsi-agent-ui",
+  "template": "soft-ui-glyphs",
+  "finish": "clean-flat",
+  "stickers": [
+    {
+      "name": "key",
+      "file": "/stickers/key.png",
+      "alt": "Chìa khóa API",
+      "color": "sage",
+      "shape": "circle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "bolt",
+      "file": "/stickers/bolt.png",
+      "alt": "Tín hiệu nhanh",
+      "color": "ochre",
+      "shape": "arch",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "shield",
+      "file": "/stickers/shield.png",
+      "alt": "Bảo mật",
+      "color": "blue",
+      "shape": "squircle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "nodes",
+      "file": "/stickers/nodes.png",
+      "alt": "Kết nối mô hình",
+      "color": "sage",
+      "shape": "wide",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "coin",
+      "file": "/stickers/coin.png",
+      "alt": "Chi phí theo token",
+      "color": "ochre",
+      "shape": "circle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "terminal",
+      "file": "/stickers/terminal.png",
+      "alt": "Terminal",
+      "color": "lavender",
+      "shape": "wide",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "globe",
+      "file": "/stickers/globe.png",
+      "alt": "Hạ tầng tại Việt Nam",
+      "color": "blue",
+      "shape": "circle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "chart",
+      "file": "/stickers/chart.png",
+      "alt": "Sử dụng",
+      "color": "clay",
+      "shape": "arch",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "chat",
+      "file": "/stickers/chat.png",
+      "alt": "Hội thoại",
+      "color": "sage",
+      "shape": "capsule",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "cube",
+      "file": "/stickers/cube.png",
+      "alt": "Mô hình",
+      "color": "lavender",
+      "shape": "square",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "plug",
+      "file": "/stickers/plug.png",
+      "alt": "Tương thích",
+      "color": "ochre",
+      "shape": "capsule",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "lock",
+      "file": "/stickers/lock.png",
+      "alt": "Bảo mật",
+      "color": "clay",
+      "shape": "arch",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "spark",
+      "file": "/stickers/spark.png",
+      "alt": "Sáng tạo",
+      "color": "ochre",
+      "shape": "circle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "arrow",
+      "file": "/stickers/arrow.png",
+      "alt": "Đi tiếp",
+      "color": "sage",
+      "shape": "wide",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "plane",
+      "file": "/stickers/plane.png",
+      "alt": "Gửi yêu cầu",
+      "color": "blue",
+      "shape": "squircle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "cloud",
+      "file": "/stickers/cloud.png",
+      "alt": "Đám mây",
+      "color": "lavender",
+      "shape": "capsule",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "check",
+      "file": "/stickers/check.png",
+      "alt": "Hoàn tất",
+      "color": "sage",
+      "shape": "circle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "copy",
+      "file": "/stickers/copy.png",
+      "alt": "Sao chép",
+      "color": "clay",
+      "shape": "square",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "plus",
+      "file": "/stickers/plus.png",
+      "alt": "Thêm",
+      "color": "ochre",
+      "shape": "circle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "trash",
+      "file": "/stickers/trash.png",
+      "alt": "Xóa",
+      "color": "clay",
+      "shape": "arch",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "eye",
+      "file": "/stickers/eye.png",
+      "alt": "Hiện mật khẩu",
+      "color": "blue",
+      "shape": "capsule",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "logout",
+      "file": "/stickers/logout.png",
+      "alt": "Đăng xuất",
+      "color": "sage",
+      "shape": "square",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "search",
+      "file": "/stickers/search.png",
+      "alt": "Tìm kiếm",
+      "color": "lavender",
+      "shape": "circle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "book",
+      "file": "/stickers/book.png",
+      "alt": "Tài liệu",
+      "color": "ochre",
+      "shape": "arch",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "code",
+      "file": "/stickers/code.png",
+      "alt": "Mã nguồn",
+      "color": "blue",
+      "shape": "wide",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "external",
+      "file": "/stickers/external.png",
+      "alt": "Mở liên kết",
+      "color": "sage",
+      "shape": "squircle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "user",
+      "file": "/stickers/user.png",
+      "alt": "Tài khoản",
+      "color": "clay",
+      "shape": "circle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "star",
+      "file": "/stickers/star.png",
+      "alt": "Đánh dấu",
+      "color": "ochre",
+      "shape": "arch",
+      "width": 512,
+      "height": 512
+    }
+  ]
+}
