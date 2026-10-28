@@ -1,12 +1,24 @@
+import {
+  LLM_BASE_URL,
+  PARENT_DOMAIN,
+  PARENT_URL,
+  SECURITY_EMAIL,
+  SITE_DOMAIN,
+  SITE_EMAIL,
+  SITE_NAME,
+  SUPPORT_EMAIL,
+} from "../lib/env";
 import type { StickerName } from "./stickers";
 
 export const SITE = {
-  name: "DeepSI Agent",
-  parent: "deepsi.space",
-  domain: "service.deepsi.space",
-  baseUrl: "https://api.service.deepsi.space/v1",
-  email: "hello@deepsi.space",
-  supportEmail: "support@deepsi.space",
+  name: SITE_NAME,
+  parent: PARENT_DOMAIN,
+  parentUrl: PARENT_URL,
+  domain: SITE_DOMAIN,
+  baseUrl: LLM_BASE_URL,
+  email: SITE_EMAIL,
+  supportEmail: SUPPORT_EMAIL,
+  securityEmail: SECURITY_EMAIL,
   status: "Tất cả hệ thống hoạt động",
   tagline: "Bộ não cho agent của bạn.",
   description:
@@ -30,7 +42,7 @@ export const MENU_ITEMS: MenuItem[] = [
     label: "Tổng quan",
     short: "Một endpoint cho mọi agent",
     description:
-      "DeepSI Agent là lớp suy luận của deepsi.space: một API tương thích OpenAI, đặt tại Việt Nam, cho mọi hệ thống cần thêm khả năng suy nghĩ.",
+      `DeepSI Agent là lớp suy luận của ${SITE.parent}: một API tương thích OpenAI, đặt tại Việt Nam, cho mọi hệ thống cần thêm khả năng suy nghĩ.`,
     href: "/#tong-quan",
     sticker: "spark",
     quote: "Agent không cần thêm một dashboard. Nó cần một lời gọi hàm đáng tin.",
@@ -183,7 +195,7 @@ export const USE_CASES = [
 export const FAQS = [
   {
     q: "DeepSI Agent có phải là một công ty khác không?",
-    a: "Không. Đây là dịch vụ hạ tầng thuộc deepsi.space, cùng đội ngũ và cùng triết lý: đưa công cụ AI đến gần người xây dựng Việt Nam hơn. service.deepsi.space là mặt tiền dành riêng cho API và agent.",
+    a: `Không. Đây là dịch vụ hạ tầng thuộc ${SITE.parent}, cùng đội ngũ và cùng triết lý: đưa công cụ AI đến gần người xây dựng Việt Nam hơn. ${SITE.domain} là mặt tiền dành riêng cho API và agent.`,
   },
   {
     q: "Tôi có cần thẻ tín dụng để bắt đầu?",
@@ -191,7 +203,7 @@ export const FAQS = [
   },
   {
     q: "API có tương thích với OpenAI SDK không?",
-    a: "Có. DeepSI Agent giữ cùng cấu trúc request/response cho chat completions, streaming và tool calling. Bạn chỉ cần đổi base URL thành https://api.service.deepsi.space/v1 và dùng key DeepSI.",
+    a: `Có. DeepSI Agent giữ cùng cấu trúc request/response cho chat completions, streaming và tool calling. Bạn chỉ cần đổi base URL thành ${SITE.baseUrl} và dùng key DeepSI.`,
   },
   {
     q: "Dữ liệu của tôi được xử lý ở đâu?",

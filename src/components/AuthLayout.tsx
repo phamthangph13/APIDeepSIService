@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { SITE } from "../data/site";
 import { Logo } from "./Logo";
 import { Sticker } from "./Sticker";
 
-export type AuthMode = "login" | "register" | "forgot" | "reset";
+export type AuthMode = "login" | "register" | "forgot" | "reset" | "oauth" | "verify";
 
 const COPY: Record<
   AuthMode,
@@ -48,6 +49,22 @@ const COPY: Record<
     quoteNote: "Mật khẩu được băm trước khi lưu.",
     asideLabel: "Recovery / 03",
   },
+  oauth: {
+    eyebrow: "Client / OAuth",
+    title: "Đang hoàn tất đăng nhập.",
+    lede: "DeepSI đang xác thực tài khoản từ nhà cung cấp bạn đã chọn.",
+    quote: "Một cú nhấp. Không thêm mật khẩu mới.",
+    quoteNote: "Google và GitHub được hỗ trợ.",
+    asideLabel: "OAuth / 04",
+  },
+  verify: {
+    eyebrow: "Client / Xác nhận email",
+    title: "Xác nhận email.",
+    lede: "Một bước ngắn để bảo vệ tài khoản và bật đăng nhập.",
+    quote: "Email đúng người. Tài khoản đúng chủ.",
+    quoteNote: "Liên kết xác nhận có thời hạn.",
+    asideLabel: "Verify / 05",
+  },
 };
 
 type AuthLayoutProps = {
@@ -83,7 +100,7 @@ export function AuthLayout({ mode, children, footer }: AuthLayoutProps) {
         <div className="auth-aside__foot">
           <span className="status-dot" />
           <span className="mono">API trực tuyến · 3 vùng</span>
-          <span className="auth-aside__parent mono">một dịch vụ của deepsi.space</span>
+          <span className="auth-aside__parent mono">một dịch vụ của {SITE.parent}</span>
         </div>
       </aside>
 
@@ -93,7 +110,7 @@ export function AuthLayout({ mode, children, footer }: AuthLayoutProps) {
             <Sticker name="arrow" size={20} rotate={-135} flat decorative />
             <span>Về trang chủ</span>
           </Link>
-          <span className="mono auth-main__domain">service.deepsi.space</span>
+          <span className="mono auth-main__domain">{SITE.domain}</span>
         </div>
 
         <div className="auth-card">

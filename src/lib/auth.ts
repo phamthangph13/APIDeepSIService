@@ -1,327 +1,273 @@
 import type { PlanId } from "../data/plans";
-import { readJSON, removeKey, STORAGE_KEYS, writeJSON } from "./storage";
+import { api, clearAccessToken, errorMessage, setAccessToken } from "./api";
+
+export type Provider = "password" | "google" | "github";
+export type UserRole = "client" | "admin";
+export type AvatarColor = "moss" | "clay" | "ochre" | "blue" | "lavender";
+export type KeyEnvironment = "production" | "development";
+export type KeyStatus = "active" | "revoked";
 
 export type User = {
   id: string;
   name: string;
   email: string;
-  passwordHash?: string;
-  provider: "password" | "google" | "github";
+  provider: Provider;
+  role: UserRole;
   plan: PlanId;
+  planStartedAt: string | null;
+  planExpiresAt: string | null;
+  cancelAtPeriodEnd: boolean;
+  emailVerified: boolean;
+  avatarColor: AvatarColor;
   createdAt: string;
-  avatarColor: "moss" | "clay" | "ochre" | "blue" | "lavender";
-};
-
-export type Session = {
-  userId: string;
-  token: string;
-  createdAt: string;
+  updatedAt: string;
+  lastLoginAt: string | null;
 };
 
 export type ApiKey = {
   id: string;
-  userId: string;
   name: string;
-  key: string;
   prefix: string;
-  environment: "production" | "development";
+  last4: string;
+  environment: KeyEnvironment;
   scopes: string[];
+  expiresAt: string | null;
+  lastUsedAt: string | null;
+  status: KeyStatus;
   createdAt: string;
-  lastUsed: string | null;
-  status: "active" | "revoked";
-};
-
-export type ResetToken = {
-  token: string;
-  email: string;
-  expiresAt: number;
-  used: boolean;
+  revokedAt: string | null;
+  /** Only present in the create response. */
+  key?: string;
 };
 
 export type ApiKeyInput = {
   name: string;
-  environment: "production" | "development";
+  environment: KeyEnvironment;
   scopes: string[];
   expiresInDays: number | null;
 };
 
-const DEMO_ID = "usr_demo_minh_anh";
-const DEMO_EMAIL = "demo@deepsi.space";
-const DEMO_PASSWORD_HASH =
-  "c72882d27194dcc6d8b27fd780442d4048e7f4ec7c240e412431e7da6dea9b6a";
+export type AuthSession = {
+  user?: User;
+  accessToken?: string;
+  requiresEmailVerification?: boolean;
+  message?: string;
+};
 
-const AVATAR_COLORS: User["avatarColor"][] = ["moss", "clay", "ochre", "blue", "lavender"];
+export type AuthOutcome = AuthSession & {
+  error?: string;
+};
 
-function uid(prefix: string): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(8));
-  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-  return `${prefix}_${hex}`;
+type ApiUser = {
+  id: string;
+  name: string;
+  email: string;
+  provider: string;
+  role: string;
+  plan: string;
+  plan_started_at?: string | null;
+  plan_expires_at?: string | null;
+  cancel_at_period_end?: boolean;
+  email_verified?: boolean;
+  avatar_color?: string;
+  created_at: string;
+  updated_at: string;
+  last_login_at?: string | null;
+};
+
+type ApiAuthResult = {
+  user?: ApiUser;
+  access_token?: string;
+  refresh_token?: string;
+  token_type?: string;
+  expires_in?: number;
+  requires_email_verification?: boolean;
+  message?: string;
+};
+
+type ApiApiKey = {
+  id: string;
+  name: string;
+  prefix: string;
+  last4: string;
+  environment: string;
+  scopes?: string[];
+  expires_at?: string | null;
+  last_used_at?: string | null;
+  status: string;
+  created_at: string;
+  revoked_at?: string | null;
+  key?: string;
+};
+
+const PLAN_IDS: PlanId[] = ["free", "plus", "ultral"];
+const AVATAR_COLORS: AvatarColor[] = ["moss", "clay", "ochre", "blue", "lavender"];
+
+function normalizePlan(value: string): PlanId {
+  return PLAN_IDS.includes(value as PlanId) ? (value as PlanId) : "free";
 }
 
-function randomToken(length = 32): string {
-  const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
+function normalizeAvatar(value: string | undefined): AvatarColor {
+  return AVATAR_COLORS.includes(value as AvatarColor) ? (value as AvatarColor) : "moss";
 }
 
-export async function hashPassword(password: string, salt: string): Promise<string> {
-  const data = new TextEncoder().encode(`${salt}:${password}`);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-export function generateApiKey(environment: "production" | "development"): string {
-  const prefix = environment === "production" ? "dsi_live" : "dsi_test";
-  return `${prefix}_${randomToken(36)}`;
-}
-
-function getUsers(): User[] {
-  return readJSON<User[]>(STORAGE_KEYS.users, []);
-}
-
-function saveUsers(users: User[]): void {
-  writeJSON(STORAGE_KEYS.users, users);
-}
-
-function getKeys(): ApiKey[] {
-  return readJSON<ApiKey[]>(STORAGE_KEYS.keys, []);
-}
-
-function saveKeys(keys: ApiKey[]): void {
-  writeJSON(STORAGE_KEYS.keys, keys);
-}
-
-export function seedDemo(): void {
-  if (readJSON<boolean>(STORAGE_KEYS.seeded, false)) return;
-  const users = getUsers();
-  if (!users.some((user) => user.id === DEMO_ID)) {
-    const now = new Date();
-    const created = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 96).toISOString();
-    const demo: User = {
-      id: DEMO_ID,
-      name: "Minh Anh",
-      email: DEMO_EMAIL,
-      passwordHash: DEMO_PASSWORD_HASH,
-      provider: "password",
-      plan: "plus",
-      createdAt: created,
-      avatarColor: "moss",
-    };
-    users.push(demo);
-    saveUsers(users);
-  }
-
-  const keys = getKeys();
-  if (!keys.some((key) => key.userId === DEMO_ID)) {
-    const now = Date.now();
-    keys.push(
-      {
-        id: uid("key"),
-        userId: DEMO_ID,
-        name: "Production · Website",
-        key: "dsi_live_7Hk2mQ9sV4xL8nR3pW6tY1cB5dF0gJ2aK9eS",
-        prefix: "dsi_live_7Hk2",
-        environment: "production",
-        scopes: ["chat", "embeddings", "vision"],
-        createdAt: new Date(now - 1000 * 60 * 60 * 24 * 74).toISOString(),
-        lastUsed: new Date(now - 1000 * 60 * 26).toISOString(),
-        status: "active",
-      },
-      {
-        id: uid("key"),
-        userId: DEMO_ID,
-        name: "Local · Playground",
-        key: "dsi_test_3Pz8rN5wC1yB7mK4tQ9vL2hD6sF0gX8aJ5eU",
-        prefix: "dsi_test_3Pz8",
-        environment: "development",
-        scopes: ["chat"],
-        createdAt: new Date(now - 1000 * 60 * 60 * 24 * 32).toISOString(),
-        lastUsed: new Date(now - 1000 * 60 * 60 * 8).toISOString(),
-        status: "active",
-      },
-    );
-    saveKeys(keys);
-  }
-  writeJSON(STORAGE_KEYS.seeded, true);
-}
-
-export function getSessionUser(): User | null {
-  const session = readJSON<Session | null>(STORAGE_KEYS.session, null);
-  if (!session) return null;
-  const user = getUsers().find((item) => item.id === session.userId);
-  return user ?? null;
-}
-
-function createSession(userId: string): Session {
-  const session: Session = {
-    userId,
-    token: randomToken(24),
-    createdAt: new Date().toISOString(),
+export function mapUser(raw: ApiUser): User {
+  return {
+    id: raw.id,
+    name: raw.name,
+    email: raw.email,
+    provider: (raw.provider === "google" || raw.provider === "github" ? raw.provider : "password"),
+    role: raw.role === "admin" ? "admin" : "client",
+    plan: normalizePlan(raw.plan),
+    planStartedAt: raw.plan_started_at ?? null,
+    planExpiresAt: raw.plan_expires_at ?? null,
+    cancelAtPeriodEnd: Boolean(raw.cancel_at_period_end),
+    emailVerified: Boolean(raw.email_verified),
+    avatarColor: normalizeAvatar(raw.avatar_color),
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+    lastLoginAt: raw.last_login_at ?? null,
   };
-  writeJSON(STORAGE_KEYS.session, session);
-  return session;
 }
 
-export async function loginWithPassword(
-  email: string,
-  password: string,
-): Promise<{ user?: User; error?: string }> {
-  const normalized = email.trim().toLowerCase();
-  const user = getUsers().find((item) => item.email.toLowerCase() === normalized);
-  if (!user || !user.passwordHash) {
-    return { error: "Email hoặc mật khẩu không đúng." };
+function mapApiKey(raw: ApiApiKey): ApiKey {
+  return {
+    id: raw.id,
+    name: raw.name,
+    prefix: raw.prefix,
+    last4: raw.last4,
+    environment: raw.environment === "development" ? "development" : "production",
+    scopes: raw.scopes ?? [],
+    expiresAt: raw.expires_at ?? null,
+    lastUsedAt: raw.last_used_at ?? null,
+    status: raw.status === "revoked" ? "revoked" : "active",
+    createdAt: raw.created_at,
+    revokedAt: raw.revoked_at ?? null,
+    key: raw.key,
+  };
+}
+
+function toSession(data: ApiAuthResult): AuthSession {
+  if (data.access_token) setAccessToken(data.access_token);
+  return {
+    user: data.user ? mapUser(data.user) : undefined,
+    accessToken: data.access_token,
+    requiresEmailVerification: Boolean(data.requires_email_verification),
+    message: data.message,
+  };
+}
+
+export async function fetchMe(): Promise<User> {
+  return mapUser(await api.get<ApiUser>("/auth/me"));
+}
+
+export async function loginWithPassword(email: string, password: string): Promise<AuthOutcome> {
+  try {
+    const data = await api.post<ApiAuthResult>("/auth/login", { email, password });
+    return toSession(data);
+  } catch (error) {
+    return { error: errorMessage(error) };
   }
-  const hash = await hashPassword(password, normalized);
-  if (hash !== user.passwordHash) {
-    return { error: "Email hoặc mật khẩu không đúng." };
-  }
-  createSession(user.id);
-  return { user };
 }
 
 export async function registerWithPassword(
   name: string,
   email: string,
   password: string,
-): Promise<{ user?: User; error?: string }> {
-  const normalized = email.trim().toLowerCase();
-  const users = getUsers();
-  if (users.some((item) => item.email.toLowerCase() === normalized)) {
-    return { error: "Email này đã có tài khoản. Hãy đăng nhập hoặc đặt lại mật khẩu." };
+): Promise<AuthOutcome> {
+  try {
+    const data = await api.post<ApiAuthResult>("/auth/register", { name, email, password });
+    return toSession(data);
+  } catch (error) {
+    return { error: errorMessage(error) };
   }
-  const hash = await hashPassword(password, normalized);
-  const user: User = {
-    id: uid("usr"),
-    name: name.trim(),
-    email: normalized,
-    passwordHash: hash,
-    provider: "password",
-    plan: "free",
-    createdAt: new Date().toISOString(),
-    avatarColor: AVATAR_COLORS[users.length % AVATAR_COLORS.length],
-  };
-  users.push(user);
-  saveUsers(users);
-  createSession(user.id);
-  return { user };
 }
 
-export function loginWithOAuth(provider: "google" | "github"): User {
-  const normalized = `demo.${provider}@deepsi.space`;
-  const users = getUsers();
-  let user = users.find((item) => item.email === normalized);
-  if (!user) {
-    user = {
-      id: uid(`usr_${provider}`),
-      name: provider === "google" ? "Google Demo" : "GitHub Demo",
-      email: normalized,
-      provider,
-      plan: "free",
-      createdAt: new Date().toISOString(),
-      avatarColor: provider === "google" ? "blue" : "clay",
+export async function logout(): Promise<void> {
+  try {
+    await api.post<void>("/auth/logout");
+  } catch {
+    // The local session is cleared even if the server is unreachable.
+  } finally {
+    clearAccessToken();
+  }
+}
+
+export async function exchangeOAuthCode(code: string): Promise<AuthOutcome> {
+  try {
+    const data = await api.post<ApiAuthResult>("/auth/oauth/exchange", { code });
+    return toSession(data);
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
+}
+
+export type PasswordResetRequest = {
+  message?: string;
+  debugToken?: string;
+  resetUrl?: string;
+  error?: string;
+};
+
+export async function requestPasswordReset(email: string): Promise<PasswordResetRequest> {
+  try {
+    const data = await api.post<{
+      message?: string;
+      debug_token?: string;
+      reset_url?: string;
+    }>("/auth/forgot-password", { email });
+    return {
+      message: data.message,
+      debugToken: data.debug_token,
+      resetUrl: data.reset_url,
     };
-    users.push(user);
-    saveUsers(users);
+  } catch (error) {
+    return { error: errorMessage(error) };
   }
-  createSession(user.id);
-  return user;
 }
 
-export function logout(): void {
-  removeKey(STORAGE_KEYS.session);
+export async function resetPassword(token: string, password: string): Promise<AuthOutcome> {
+  try {
+    const data = await api.post<ApiAuthResult>("/auth/reset-password", { token, password });
+    return toSession(data);
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
 }
 
-export function updatePlan(userId: string, plan: PlanId): User | null {
-  const users = getUsers();
-  const index = users.findIndex((item) => item.id === userId);
-  if (index === -1) return null;
-  users[index] = { ...users[index], plan };
-  saveUsers(users);
-  return users[index];
+export async function verifyEmail(token: string): Promise<{ message?: string; error?: string }> {
+  try {
+    const data = await api.post<{ message?: string }>("/auth/verify-email", { token });
+    return { message: data.message };
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
 }
 
-export function getApiKeys(userId: string): ApiKey[] {
-  return getKeys()
-    .filter((key) => key.userId === userId)
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+export async function resendVerification(email: string): Promise<{ message?: string; error?: string }> {
+  try {
+    const data = await api.post<{ message?: string }>("/auth/resend-verification", { email });
+    return { message: data.message };
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
 }
 
-export function createApiKey(userId: string, input: ApiKeyInput): ApiKey {
-  const fullKey = generateApiKey(input.environment);
-  const key: ApiKey = {
-    id: uid("key"),
-    userId,
-    name: input.name.trim() || "API key chưa đặt tên",
-    key: fullKey,
-    prefix: fullKey.slice(0, input.environment === "production" ? 13 : 13),
+export async function listApiKeys(): Promise<ApiKey[]> {
+  const keys = await api.get<ApiApiKey[]>("/api-keys");
+  return keys.map(mapApiKey);
+}
+
+export async function createApiKey(input: ApiKeyInput): Promise<ApiKey> {
+  const key = await api.post<ApiApiKey>("/api-keys", {
+    name: input.name.trim(),
     environment: input.environment,
-    scopes: input.scopes.length > 0 ? input.scopes : ["chat"],
-    createdAt: new Date().toISOString(),
-    lastUsed: null,
-    status: "active",
-  };
-  const keys = getKeys();
-  keys.push(key);
-  saveKeys(keys);
-  return key;
-}
-
-export function revokeApiKey(userId: string, keyId: string): void {
-  const keys = getKeys();
-  const index = keys.findIndex((key) => key.id === keyId && key.userId === userId);
-  if (index !== -1) {
-    keys[index] = { ...keys[index], status: "revoked" };
-    saveKeys(keys);
-  }
-}
-
-export function requestPasswordReset(email: string): { token: string | null; exists: boolean } {
-  const normalized = email.trim().toLowerCase();
-  const user = getUsers().find((item) => item.email.toLowerCase() === normalized);
-  if (!user) return { token: null, exists: false };
-  const token = randomToken(40);
-  const resets = readJSON<ResetToken[]>(STORAGE_KEYS.resets, []);
-  resets.push({
-    token,
-    email: normalized,
-    expiresAt: Date.now() + 1000 * 60 * 30,
-    used: false,
+    scopes: input.scopes,
+    expires_in_days: input.expiresInDays ?? 0,
   });
-  writeJSON(STORAGE_KEYS.resets, resets);
-  return { token, exists: true };
+  return mapApiKey(key);
 }
 
-export async function resetPassword(
-  token: string,
-  password: string,
-): Promise<{ user?: User; error?: string }> {
-  const resets = readJSON<ResetToken[]>(STORAGE_KEYS.resets, []);
-  const reset = resets.find((item) => item.token === token);
-  if (!reset || reset.used) {
-    return { error: "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã được sử dụng." };
-  }
-  if (reset.expiresAt < Date.now()) {
-    return { error: "Liên kết đặt lại mật khẩu đã hết hạn. Hãy yêu cầu một liên kết mới." };
-  }
-  const users = getUsers();
-  const index = users.findIndex((item) => item.email === reset.email);
-  if (index === -1) {
-    return { error: "Không tìm thấy tài khoản cho liên kết này." };
-  }
-  users[index] = {
-    ...users[index],
-    passwordHash: await hashPassword(password, reset.email),
-  };
-  saveUsers(users);
-  const updated = resets.map((item) =>
-    item.token === token ? { ...item, used: true } : item,
-  );
-  writeJSON(STORAGE_KEYS.resets, updated);
-  createSession(users[index].id);
-  return { user: users[index] };
+export async function revokeApiKey(keyId: string): Promise<void> {
+  await api.delete<void>(`/api-keys/${encodeURIComponent(keyId)}`);
 }
-
-export const DEMO_CREDENTIALS = {
-  email: DEMO_EMAIL,
-  password: "deepsi2026",
-} as const;

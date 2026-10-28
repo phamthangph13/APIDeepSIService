@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useToast } from "../context/ToastContext";
-import { PLAN_BY_ID, type PlanId } from "../data/plans";
+import { usePlans } from "../context/PlansContext";
+import type { PlanId } from "../data/plans";
 import { createApiKey, type ApiKey } from "../lib/auth";
+import { errorMessage } from "../lib/api";
 import { copyText } from "../lib/format";
 import { Button } from "./Button";
 import { FormField } from "./FormField";
@@ -12,7 +14,6 @@ type CreateKeyModalProps = {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
-  userId: string;
   planId: PlanId;
   existingCount: number;
 };
@@ -28,7 +29,6 @@ export function CreateKeyModal({
   open,
   onClose,
   onCreated,
-  userId,
   planId,
   existingCount,
 }: CreateKeyModalProps) {
@@ -39,8 +39,10 @@ export function CreateKeyModal({
   const [expires, setExpires] = useState("never");
   const [created, setCreated] = useState<ApiKey | null>(null);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const { push } = useToast();
-  const plan = PLAN_BY_ID[planId];
+  const { byId } = usePlans();
+  const plan = byId[planId] ?? byId.free;
   const limitReached = Number.isFinite(plan.keyLimit) && existingCount >= plan.keyLimit;
 
   useEffect(() => {
@@ -52,6 +54,7 @@ export function CreateKeyModal({
     setExpires("never");
     setCreated(null);
     setError("");
+    setBusy(false);
   }, [open]);
 
   const toggleScope = (scope: string) => {
@@ -60,7 +63,7 @@ export function CreateKeyModal({
     );
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (limitReached) {
       setError(`Gói ${plan.name} đã đạt giới hạn ${plan.keyLimit} key. Nâng cấp để tạo thêm.`);
       return;
@@ -73,20 +76,28 @@ export function CreateKeyModal({
       setError("Chọn ít nhất một quyền cho key.");
       return;
     }
-    const key = createApiKey(userId, {
-      name,
-      environment,
-      scopes,
-      expiresInDays: expires === "never" ? null : Number(expires),
-    });
-    setCreated(key);
-    setStep("reveal");
-    onCreated();
-    push("Đã tạo API key mới", "success", "Key chỉ hiển thị đầy đủ một lần.");
+    setBusy(true);
+    setError("");
+    try {
+      const key = await createApiKey({
+        name,
+        environment,
+        scopes,
+        expiresInDays: expires === "never" ? null : Number(expires),
+      });
+      setCreated(key);
+      setStep("reveal");
+      onCreated();
+      push("Đã tạo API key mới", "success", "Key chỉ hiển thị đầy đủ một lần.");
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleCopy = async () => {
-    if (!created) return;
+    if (!created?.key) return;
     const ok = await copyText(created.key);
     push(ok ? "Đã sao chép API key" : "Không thể sao chép", ok ? "success" : "error");
   };
@@ -101,11 +112,11 @@ export function CreateKeyModal({
       footer={
         step === "form" ? (
           <div className="modal-actions">
-            <Button variant="ghost" onClick={onClose}>
+            <Button variant="ghost" onClick={onClose} disabled={busy}>
               Hủy
             </Button>
-            <Button variant="primary" onClick={handleCreate} icon="key">
-              Tạo key
+            <Button variant="primary" onClick={handleCreate} icon="key" disabled={busy || limitReached}>
+              {busy ? "Đang tạo…" : "Tạo key"}
             </Button>
           </div>
         ) : (
@@ -124,7 +135,10 @@ export function CreateKeyModal({
         <div className="key-form">
           <div className="key-form__note">
             <Sticker name="spark" size={24} flat decorative />
-            <span>API key miễn phí trên mọi gói. Gói {plan.name} hiện có {existingCount}/{Number.isFinite(plan.keyLimit) ? plan.keyLimit : "∞"} key.</span>
+            <span>
+              API key miễn phí trên mọi gói. Gói {plan.name} hiện có {existingCount}/
+              {Number.isFinite(plan.keyLimit) ? plan.keyLimit : "∞"} key.
+            </span>
           </div>
 
           <FormField
@@ -207,7 +221,11 @@ export function CreateKeyModal({
             </select>
           </label>
 
-          {error ? <p className="form-error" role="alert">{error}</p> : null}
+          {error ? (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          ) : null}
           {limitReached ? (
             <p className="form-note">
               Đã đạt giới hạn key của gói {plan.name}. Bạn vẫn có thể dùng các key hiện có hoặc{" "}
@@ -226,7 +244,7 @@ export function CreateKeyModal({
             bạn đóng cửa sổ này.
           </p>
           <div className="key-reveal__value">
-            <code>{created?.key}</code>
+            <code>{created?.key ?? ""}</code>
             <button type="button" onClick={handleCopy} aria-label="Sao chép API key">
               <Sticker name="copy" size={22} flat decorative />
             </button>

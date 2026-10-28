@@ -1,10 +1,4 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useToast } from "../context/ToastContext";
-import { Modal } from "./Modal";
-import { Button } from "./Button";
-import { Sticker } from "./Sticker";
+import { API_BASE_URL, OAUTH_ENABLED } from "../lib/env";
 
 type Provider = "google" | "github";
 
@@ -46,72 +40,28 @@ type OAuthButtonsProps = {
   next?: string;
 };
 
+function safeNext(value: string): string {
+  return value.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
+}
+
 export function OAuthButtons({ next = "/dashboard" }: OAuthButtonsProps) {
-  const [provider, setProvider] = useState<Provider | null>(null);
-  const { loginWithProvider } = useAuth();
-  const { push } = useToast();
-  const navigate = useNavigate();
+  if (!OAUTH_ENABLED) return null;
 
-  const label = provider === "google" ? "Google" : "GitHub";
-
-  const handleContinue = () => {
-    if (!provider) return;
-    loginWithProvider(provider);
-    setProvider(null);
-    push(`Đã đăng nhập bằng ${label}`, "success", "Tài khoản demo — không có dữ liệu nào được gửi ra ngoài.");
-    navigate(next, { replace: true });
+  const start = (provider: Provider) => {
+    const target = `${API_BASE_URL}/auth/oauth/${provider}/start?next=${encodeURIComponent(safeNext(next))}`;
+    window.location.assign(target);
   };
 
   return (
-    <>
-      <div className="oauth-grid">
-        <button type="button" className="oauth-button" onClick={() => setProvider("google")}>
-          <GoogleMark />
-          <span>Google</span>
-        </button>
-        <button type="button" className="oauth-button" onClick={() => setProvider("github")}>
-          <GitHubMark />
-          <span>GitHub</span>
-        </button>
-      </div>
-
-      <Modal
-        open={provider !== null}
-        onClose={() => setProvider(null)}
-        eyebrow="OAuth / Demo"
-        title={`Tiếp tục với ${label}?`}
-        size="sm"
-        footer={
-          <div className="modal-actions">
-            <Button variant="ghost" onClick={() => setProvider(null)}>
-              Hủy
-            </Button>
-            <Button variant="primary" onClick={handleContinue} icon="arrow" iconSide="right">
-              Tiếp tục với tài khoản demo
-            </Button>
-          </div>
-        }
-      >
-        <div className="oauth-modal">
-          <div className="oauth-modal__mark">
-            {provider === "google" ? <GoogleMark /> : <GitHubMark />}
-          </div>
-          <div>
-            <p>
-              Bản giao diện này chưa kết nối OAuth thật. Trong môi trường production, bạn sẽ
-              được chuyển đến trang đăng nhập của {label}.
-            </p>
-            <p className="muted">
-              Ở đây, bạn có thể tiếp tục với một tài khoản demo để xem toàn bộ luồng client:
-              dashboard, API key, usage và gói dịch vụ.
-            </p>
-          </div>
-        </div>
-        <div className="oauth-modal__note">
-          <Sticker name="lock" size={22} flat decorative />
-          <span>Không có mật khẩu nào được gửi đến {label} trong bản demo này.</span>
-        </div>
-      </Modal>
-    </>
+    <div className="oauth-grid">
+      <button type="button" className="oauth-button" onClick={() => start("google")}>
+        <GoogleMark />
+        <span>Google</span>
+      </button>
+      <button type="button" className="oauth-button" onClick={() => start("github")}>
+        <GitHubMark />
+        <span>GitHub</span>
+      </button>
+    </div>
   );
 }

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, Navigate, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { usePlans } from "../context/PlansContext";
 import { useToast } from "../context/ToastContext";
-import { PLAN_BY_ID } from "../data/plans";
+import { SITE } from "../data/site";
 import { initials } from "../lib/format";
 import { Logo } from "./Logo";
 import { Sticker } from "./Sticker";
@@ -31,6 +32,7 @@ type DashboardShellProps = {
 
 export function DashboardShell({ children, title, section }: DashboardShellProps) {
   const { user, loading, logout } = useAuth();
+  const { byId } = usePlans();
   const { push } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,10 +72,10 @@ export function DashboardShell({ children, title, section }: DashboardShellProps
     return <Navigate to={`/login?next=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  const plan = PLAN_BY_ID[user.plan];
+  const plan = byId[user.plan] ?? byId.free;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     push("Đã đăng xuất khỏi DeepSI Agent", "info");
     navigate("/");
   };
@@ -169,7 +171,7 @@ export function DashboardShell({ children, title, section }: DashboardShellProps
       </main>
 
       <footer className="dash-foot">
-        <span className="mono">DeepSI Agent / service.deepsi.space</span>
+        <span className="mono">{SITE.name} / {SITE.domain}</span>
         <span className="dash-foot__status">
           <span className="status-dot" />
           <span className="mono">Tất cả hệ thống hoạt động</span>

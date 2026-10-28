@@ -10,6 +10,7 @@ type ConfirmModalProps = {
   title: string;
   body: ReactNode;
   confirmLabel: string;
+  confirmDisabled?: boolean;
   danger?: boolean;
   eyebrow?: string;
   icon?: "trash" | "coin" | "lock" | "check";
@@ -22,6 +23,7 @@ export function ConfirmModal({
   title,
   body,
   confirmLabel,
+  confirmDisabled = false,
   danger = false,
   eyebrow = "Client / Xác nhận",
   icon = "lock",
@@ -38,7 +40,7 @@ export function ConfirmModal({
           <Button variant="ghost" onClick={onClose}>
             Hủy
           </Button>
-          <Button variant={danger ? "danger" : "primary"} onClick={onConfirm} icon={icon}>
+          <Button variant={danger ? "danger" : "primary"} onClick={onConfirm} icon={icon} disabled={confirmDisabled}>
             {confirmLabel}
           </Button>
         </div>

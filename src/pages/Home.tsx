@@ -10,8 +10,8 @@ import { PricingCards } from "../components/PricingCards";
 import { SectionHead } from "../components/SectionHead";
 import { Sticker } from "../components/Sticker";
 import { MODELS } from "../data/models";
-import { PLANS } from "../data/plans";
 import { CAPABILITIES, SITE, STATS, STEPS, USE_CASES } from "../data/site";
+import { usePlans } from "../context/PlansContext";
 import { formatCompact, formatVnd } from "../lib/format";
 
 const MARQUEE_ITEMS = [
@@ -26,7 +26,7 @@ const MARQUEE_ITEMS = [
   "3 VÙNG TẠI VIỆT NAM",
 ];
 
-const CURL_CODE = `curl https://api.service.deepsi.space/v1/chat/completions \\
+const CURL_CODE = `curl ${SITE.baseUrl}/chat/completions \\
   -H "Authorization: Bearer $DEEPSI_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -41,7 +41,7 @@ const TS_CODE = `import OpenAI from "openai";
 
 const client = new OpenAI({
   apiKey: process.env.DEEPSI_API_KEY,
-  baseURL: "https://api.service.deepsi.space/v1",
+  baseURL: "${SITE.baseUrl}",
 });
 
 const stream = await client.chat.completions.create({
@@ -55,7 +55,7 @@ import os
 
 client = OpenAI(
     api_key=os.environ["DEEPSI_API_KEY"],
-    base_url="https://api.service.deepsi.space/v1",
+    base_url="${SITE.baseUrl}",
 )
 
 stream = client.chat.completions.create(
@@ -65,6 +65,8 @@ stream = client.chat.completions.create(
 )`;
 
 export function Home() {
+  const { plans } = usePlans();
+
   return (
     <PageShell title="API LLM cho agent của mọi hệ thống">
       <section className="hero" data-index-section="0">
@@ -302,7 +304,7 @@ export function Home() {
                 {index === 1 ? (
                   <div className="compat-visual" aria-hidden="true">
                     <span className="mono">baseURL</span>
-                    <code>api.service.deepsi.space/v1</code>
+                    <code>{SITE.baseUrl.replace(/^https?:\/\//, "")}</code>
                   </div>
                 ) : null}
                 {index === 2 ? (
@@ -508,7 +510,7 @@ export function Home() {
             <span>
               Giá đã bao gồm VAT. Hủy bất cứ lúc nào. Không tự động gia hạn nếu bạn không bật.
             </span>
-            <span className="mono">{PLANS.length} gói · 1 bảng giá</span>
+            <span className="mono">{plans.length} gói · 1 bảng giá</span>
           </div>
         </div>
       </section>
@@ -580,7 +582,7 @@ export function Home() {
               <span className="cta__sticker-note mono">API KEY / FREE</span>
             </div>
             <div className="cta__mini">
-              <span className="mono">service.deepsi.space</span>
+              <span className="mono">{SITE.domain}</span>
               <span className="mono">không cần thẻ</span>
             </div>
           </div>
@@ -596,7 +598,7 @@ export function Home() {
             <div className="footer__brand">
               <Logo />
               <p>
-                API LLM cho agent của mọi hệ thống. Một dịch vụ riêng của deepsi.space, dành
+                API LLM cho agent của mọi hệ thống. Một dịch vụ riêng của {SITE.parent}, dành
                 cho những ai đang xây dựng bằng API thay vì bằng dashboard.
               </p>
               <div className="footer__stickers" aria-hidden="true">
@@ -622,11 +624,11 @@ export function Home() {
             </div>
             <div className="footer__col">
               <span className="mono">Công ty</span>
-              <a href="https://deepsi.space" target="_blank" rel="noreferrer">
-                deepsi.space
+              <a href={SITE.parentUrl} target="_blank" rel="noreferrer">
+                {SITE.parent}
               </a>
-              <a href="mailto:hello@deepsi.space">Liên hệ</a>
-              <a href="https://deepsi.space" target="_blank" rel="noreferrer">
+              <a href={`mailto:${SITE.email}`}>Liên hệ</a>
+              <a href={SITE.parentUrl} target="_blank" rel="noreferrer">
                 Về DeepSI
               </a>
               <span className="footer__soon">Tuyển dụng · sắp mở</span>
@@ -645,12 +647,12 @@ export function Home() {
           </div>
 
           <div className="footer__bottom">
-            <span className="mono">© 2026 DeepSI. Một dịch vụ của deepsi.space.</span>
+            <span className="mono">© 2026 DeepSI. Một dịch vụ của {SITE.parent}.</span>
             <span className="footer__status">
               <span className="status-dot" />
               <span className="mono">Tất cả hệ thống hoạt động</span>
             </span>
-            <span className="mono">Made in Vietnam · service.deepsi.space</span>
+            <span className="mono">Made in Vietnam · {SITE.domain}</span>
           </div>
         </div>
       </footer>

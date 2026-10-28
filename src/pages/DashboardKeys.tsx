@@ -6,16 +6,13 @@ import { CreateKeyModal } from "../components/CreateKeyModal";
 import { DashboardShell } from "../components/DashboardShell";
 import { Sticker } from "../components/Sticker";
 import { useAuth } from "../context/AuthContext";
+import { usePlans } from "../context/PlansContext";
 import { useToast } from "../context/ToastContext";
-import { PLAN_BY_ID } from "../data/plans";
-import type { ApiKey, User } from "../lib/auth";
-import { getApiKeys, revokeApiKey } from "../lib/auth";
-import {
-  copyText,
-  formatDate,
-  formatRelative,
-  maskKey,
-} from "../lib/format";
+import type { ApiKey } from "../lib/auth";
+import { listApiKeys, revokeApiKey } from "../lib/auth";
+import { errorMessage } from "../lib/api";
+import { formatDate, formatRelative, maskKey } from "../lib/format";
+import { useApiQuery } from "../lib/useApiQuery";
 
 type Filter = "all" | "production" | "development";
 
@@ -30,21 +27,23 @@ export function DashboardKeys() {
   }
   return (
     <DashboardShell title="API keys" section="keys">
-      <KeysContent user={user} />
+      <KeysContent />
     </DashboardShell>
   );
 }
 
-function KeysContent({ user }: { user: User }) {
+function KeysContent() {
+  const { user } = useAuth();
+  const { byId } = usePlans();
   const [params, setParams] = useSearchParams();
-  const [, setRefresh] = useState(0);
   const [createOpen, setCreateOpen] = useState(params.get("create") === "1");
   const [filter, setFilter] = useState<Filter>("all");
-  const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [revokeTarget, setRevokeTarget] = useState<ApiKey | null>(null);
+  const [revoking, setRevoking] = useState(false);
   const { push } = useToast();
-  const plan = PLAN_BY_ID[user.plan];
-  const keys = getApiKeys(user.id);
+  const { data, loading, error, reload } = useApiQuery(listApiKeys, []);
+  const keys = data ?? [];
+  const plan = user ? byId[user.plan] ?? byId.free : byId.free;
   const activeKeys = keys.filter((key) => key.status === "active");
   const filtered = filter === "all" ? keys : keys.filter((key) => key.environment === filter);
 
@@ -57,28 +56,19 @@ function KeysContent({ user }: { user: User }) {
     }
   }, [params, setParams]);
 
-  const refreshKeys = () => setRefresh((value) => value + 1);
-
-  const toggleReveal = (id: string) => {
-    setRevealed((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const handleCopy = async (key: ApiKey) => {
-    const ok = await copyText(key.key);
-    push(ok ? "Đã sao chép API key" : "Không thể sao chép", ok ? "success" : "error");
-  };
-
-  const handleRevoke = () => {
+  const handleRevoke = async () => {
     if (!revokeTarget) return;
-    revokeApiKey(user.id, revokeTarget.id);
-    push("Đã thu hồi API key", "info", "Mọi request dùng key này sẽ trả 401.");
-    setRevokeTarget(null);
-    refreshKeys();
+    setRevoking(true);
+    try {
+      await revokeApiKey(revokeTarget.id);
+      push("Đã thu hồi API key", "info", "Mọi request dùng key này sẽ trả 401.");
+      setRevokeTarget(null);
+      await reload();
+    } catch (err) {
+      push("Không thể thu hồi key", "error", errorMessage(err));
+    } finally {
+      setRevoking(false);
+    }
   };
 
   return (
@@ -122,7 +112,9 @@ function KeysContent({ user }: { user: User }) {
             />
           </div>
           <span className="mono">
-            {Number.isFinite(plan.keyLimit) ? plan.keyLimit - activeKeys.length : "không giới hạn"} key còn lại
+            {Number.isFinite(plan.keyLimit)
+              ? `${Math.max(0, plan.keyLimit - activeKeys.length)} key còn lại`
+              : "không giới hạn"}
           </span>
         </div>
         <div className="keys-summary__tip">
@@ -136,8 +128,16 @@ function KeysContent({ user }: { user: User }) {
           {(
             [
               { id: "all", label: "Tất cả", count: keys.length },
-              { id: "production", label: "Production", count: keys.filter((k) => k.environment === "production").length },
-              { id: "development", label: "Development", count: keys.filter((k) => k.environment === "development").length },
+              {
+                id: "production",
+                label: "Production",
+                count: keys.filter((k) => k.environment === "production").length,
+              },
+              {
+                id: "development",
+                label: "Development",
+                count: keys.filter((k) => k.environment === "development").length,
+              },
             ] as Array<{ id: Filter; label: string; count: number }>
           ).map((item) => (
             <button
@@ -156,7 +156,22 @@ function KeysContent({ user }: { user: User }) {
         </span>
       </div>
 
-      {keys.length === 0 ? (
+      {error ? (
+        <div className="dash-empty">
+          <Sticker name="shield" size={90} rotate={-5} />
+          <h2>Không tải được API key.</h2>
+          <p>{error}</p>
+          <Button variant="secondary" onClick={() => void reload()}>
+            Thử lại
+          </Button>
+        </div>
+      ) : loading && data === null ? (
+        <div className="dash-empty">
+          <Sticker name="spark" size={90} rotate={-5} />
+          <h2>Đang tải API key…</h2>
+          <p>Kết nối tới máy chủ DeepSI.</p>
+        </div>
+      ) : keys.length === 0 ? (
         <div className="dash-empty">
           <Sticker name="key" size={120} rotate={-7} />
           <h2>Chưa có chìa khóa nào.</h2>
@@ -167,7 +182,10 @@ function KeysContent({ user }: { user: User }) {
           <Button variant="primary" size="lg" icon="key" onClick={() => setCreateOpen(true)}>
             Tạo API key đầu tiên
           </Button>
-          <span className="mono">Free · 5 key · 10.000 token/ngày</span>
+          <span className="mono">
+            {plan.name} · {Number.isFinite(plan.keyLimit) ? plan.keyLimit : "∞"} key ·{" "}
+            {plan.quotaLabel}
+          </span>
         </div>
       ) : (
         <div className="key-list">
@@ -179,69 +197,56 @@ function KeysContent({ user }: { user: User }) {
             <span className="mono">Trạng thái</span>
             <span />
           </div>
-          {filtered.map((key) => {
-            const isRevealed = revealed.has(key.id);
-            return (
-              <article className={`key-row${key.status === "revoked" ? " is-revoked" : ""}`} key={key.id}>
-                <div className="key-row__identity">
-                  <Sticker name="key" size={34} rotate={-4} flat decorative />
-                  <div>
-                    <strong>{key.name}</strong>
-                    <span className="mono">
-                      {key.environment === "production" ? "LIVE" : "TEST"} · tạo{" "}
-                      {formatDate(key.createdAt)}
-                    </span>
-                  </div>
+          {filtered.map((key) => (
+            <article
+              className={`key-row${key.status === "revoked" ? " is-revoked" : ""}`}
+              key={key.id}
+            >
+              <div className="key-row__identity">
+                <Sticker name="key" size={34} rotate={-4} flat decorative />
+                <div>
+                  <strong>{key.name}</strong>
+                  <span className="mono">
+                    {key.environment === "production" ? "LIVE" : "TEST"} · tạo{" "}
+                    {formatDate(key.createdAt)}
+                  </span>
                 </div>
+              </div>
 
-                <div className="key-row__value">
-                  <code>{isRevealed ? key.key : maskKey(key.key)}</code>
-                  <button
-                    type="button"
-                    onClick={() => toggleReveal(key.id)}
-                    aria-label={isRevealed ? "Ẩn key" : "Hiện key"}
-                    disabled={key.status === "revoked"}
-                  >
-                    <Sticker name="eye" size={18} flat decorative />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(key)}
-                    aria-label="Sao chép key"
-                    disabled={key.status === "revoked"}
-                  >
-                    <Sticker name="copy" size={18} flat decorative />
-                  </button>
-                </div>
+              <div className="key-row__value">
+                <code>{maskKey(key)}</code>
+                <span className="mono key-row__hidden">chỉ hiển thị một lần</span>
+              </div>
 
-                <div className="key-row__scopes">
-                  {key.scopes.map((scope) => (
-                    <span className="scope-tag" key={scope}>
-                      {scope}
-                    </span>
-                  ))}
-                </div>
+              <div className="key-row__scopes">
+                {key.scopes.map((scope) => (
+                  <span className="scope-tag" key={scope}>
+                    {scope}
+                  </span>
+                ))}
+              </div>
 
-                <span className="key-row__used">{formatRelative(key.lastUsed)}</span>
+              <span className="key-row__used">{formatRelative(key.lastUsedAt)}</span>
 
-                <span className={`status-pill status-pill--${key.status === "active" ? "ok" : "off"}`}>
-                  {key.status === "active" ? "active" : "revoked"}
-                </span>
+              <span
+                className={`status-pill status-pill--${key.status === "active" ? "ok" : "off"}`}
+              >
+                {key.status === "active" ? "active" : "revoked"}
+              </span>
 
-                <div className="key-row__actions">
-                  <button
-                    type="button"
-                    className="icon-button icon-button--danger"
-                    onClick={() => setRevokeTarget(key)}
-                    aria-label={`Thu hồi ${key.name}`}
-                    disabled={key.status === "revoked"}
-                  >
-                    <Sticker name="trash" size={18} flat decorative />
-                  </button>
-                </div>
-              </article>
-            );
-          })}
+              <div className="key-row__actions">
+                <button
+                  type="button"
+                  className="icon-button icon-button--danger"
+                  onClick={() => setRevokeTarget(key)}
+                  aria-label={`Thu hồi ${key.name}`}
+                  disabled={key.status === "revoked"}
+                >
+                  <Sticker name="trash" size={18} flat decorative />
+                </button>
+              </div>
+            </article>
+          ))}
           {filtered.length === 0 ? (
             <div className="key-list__empty">
               <p>Không có key nào trong môi trường này.</p>
@@ -270,9 +275,8 @@ function KeysContent({ user }: { user: User }) {
       <CreateKeyModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={refreshKeys}
-        userId={user.id}
-        planId={user.plan}
+        onCreated={() => void reload()}
+        planId={plan.id}
         existingCount={activeKeys.length}
       />
 
@@ -282,7 +286,7 @@ function KeysContent({ user }: { user: User }) {
         onConfirm={handleRevoke}
         title="Thu hồi API key?"
         eyebrow="Client / Thu hồi key"
-        confirmLabel="Thu hồi key"
+        confirmLabel={revoking ? "Đang thu hồi…" : "Thu hồi key"}
         danger
         icon="trash"
         body={

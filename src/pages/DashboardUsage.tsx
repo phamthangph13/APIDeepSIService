@@ -1,48 +1,40 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "../components/Button";
 import { DashboardShell } from "../components/DashboardShell";
 import { Sticker } from "../components/Sticker";
 import { UsageChart } from "../components/UsageChart";
 import { useAuth } from "../context/AuthContext";
+import { usePlans } from "../context/PlansContext";
 import { useToast } from "../context/ToastContext";
-import { PLAN_BY_ID } from "../data/plans";
-import type { User } from "../lib/auth";
-import {
-  formatCompact,
-  formatDate,
-  formatNumber,
-} from "../lib/format";
-import { getUsageSummary } from "../lib/usage";
+import { formatCompact, formatDate, formatNumber } from "../lib/format";
+import { emptyUsageSummary, getUsageSummary } from "../lib/usage";
+import { useApiQuery } from "../lib/useApiQuery";
 
 const RANGES = [7, 30, 90] as const;
 type Range = (typeof RANGES)[number];
 
 export function DashboardUsage() {
-  const { user } = useAuth();
-  if (!user) {
-    return (
-      <DashboardShell title="Sử dụng" section="usage">
-        {null}
-      </DashboardShell>
-    );
-  }
   return (
     <DashboardShell title="Sử dụng" section="usage">
-      <UsageContent user={user} />
+      <UsageContent />
     </DashboardShell>
   );
 }
 
-function UsageContent({ user }: { user: User }) {
+function UsageContent() {
   const [range, setRange] = useState<Range>(30);
-  const summary = useMemo(() => getUsageSummary(user, range), [user, range]);
-  const plan = PLAN_BY_ID[user.plan];
+  const { user } = useAuth();
+  const { byId } = usePlans();
+  const { data, loading, error, reload } = useApiQuery(() => getUsageSummary(range), [range]);
+  const summary = data ?? emptyUsageSummary();
+  const plan = user ? byId[user.plan] ?? byId.free : byId.free;
   const { push } = useToast();
+  const maxTokens = Math.max(1, ...summary.days.map((day) => day.tokens));
 
   const exportCsv = () => {
     const header = "ngay,token,request,input,output";
     const rows = summary.days.map(
-      (day) => `${day.date.slice(0, 10)},${day.tokens},${day.requests},${day.input},${day.output}`,
+      (day) => `${day.date},${day.tokens},${day.requests},${day.input},${day.output}`,
     );
     const blob = new Blob([[header, ...rows].join("\n")], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -57,7 +49,6 @@ function UsageContent({ user }: { user: User }) {
   };
 
   const recentDays = [...summary.days].reverse().slice(0, 14);
-  const maxDay = Math.max(1, ...summary.days.map((day) => day.tokens));
 
   return (
     <div className="dash-page">
@@ -73,17 +64,8 @@ function UsageContent({ user }: { user: User }) {
           </p>
         </div>
         <div className="dash-page__actions">
-          <Button variant="secondary" icon="chart" onClick={exportCsv}>
+          <Button variant="secondary" icon="chart" onClick={exportCsv} disabled={!data}>
             Xuất CSV
-          </Button>
-          <Button
-            variant="ghost"
-            icon="external"
-            onClick={() =>
-              push("Bảng điều khiển sự cố", "info", "Bản demo chưa kết nối trang trạng thái.")
-            }
-          >
-            Trạng thái hệ thống
           </Button>
         </div>
       </header>
@@ -106,6 +88,24 @@ function UsageContent({ user }: { user: User }) {
           {formatDate(summary.days[summary.days.length - 1]?.date ?? new Date())}
         </span>
       </div>
+
+      {error ? (
+        <div className="dash-empty">
+          <Sticker name="shield" size={90} rotate={-5} />
+          <h2>Không tải được usage.</h2>
+          <p>{error}</p>
+          <Button variant="secondary" onClick={() => void reload()}>
+            Thử lại
+          </Button>
+        </div>
+      ) : null}
+      {loading && !data ? (
+        <div className="dash-empty">
+          <Sticker name="spark" size={90} rotate={-5} />
+          <h2>Đang tải usage…</h2>
+          <p>Kết nối tới máy chủ DeepSI.</p>
+        </div>
+      ) : null}
 
       <div className="dash-stats dash-stats--usage">
         <article className="dash-stat">
@@ -142,7 +142,7 @@ function UsageContent({ user }: { user: User }) {
             <Sticker name="shield" size={32} rotate={5} flat decorative />
           </div>
           <strong>{summary.errorRate.toFixed(2)}%</strong>
-          <span className="dash-stat__sub">chủ yếu 429 · không có 5xx</span>
+          <span className="dash-stat__sub">request có status từ 400 trở lên</span>
         </article>
       </div>
 
@@ -156,7 +156,9 @@ function UsageContent({ user }: { user: User }) {
             <span>
               <i className="legend-swatch legend-swatch--moss" /> token
             </span>
-            <span className="mono">cao nhất {formatCompact(Math.max(...summary.days.map((d) => d.tokens)))}</span>
+            <span className="mono">
+              cao nhất {formatCompact(Math.max(1, ...summary.days.map((d) => d.tokens)))}
+            </span>
           </div>
         </header>
         <UsageChart data={summary.days} range={range} />
@@ -208,12 +210,16 @@ function UsageContent({ user }: { user: User }) {
                 </div>
               </div>
             ))}
+            {summary.models.length === 0 ? (
+              <div className="key-list__empty">
+                <p>Chưa có dữ liệu mô hình. Usage sẽ xuất hiện sau request đầu tiên.</p>
+              </div>
+            ) : null}
           </div>
           <div className="model-usage__note">
             <Sticker name="nodes" size={30} rotate={-5} flat decorative />
             <p>
-              M1 chiếm phần lớn request. Nếu agent cần suy luận nhiều bước, thử S1 cho các tác
-              vụ đã xác định.
+              Phân bổ được tính từ token thực tế của từng model trong khoảng thời gian đã chọn.
             </p>
           </div>
         </section>
@@ -235,12 +241,17 @@ function UsageContent({ user }: { user: User }) {
               <div className="usage-days__row" key={day.date}>
                 <span>{formatDate(day.date)}</span>
                 <span className="usage-days__tokens">
-                  <i style={{ width: `${Math.max(4, (day.tokens / maxDay) * 100)}%` }} />
+                  <i style={{ width: `${Math.max(4, (day.tokens / maxTokens) * 100)}%` }} />
                   <em>{formatCompact(day.tokens)}</em>
                 </span>
                 <span>{formatNumber(day.requests)}</span>
               </div>
             ))}
+            {recentDays.length === 0 ? (
+              <div className="key-list__empty">
+                <p>Chưa có ngày nào có usage.</p>
+              </div>
+            ) : null}
           </div>
         </section>
       </div>
@@ -248,13 +259,13 @@ function UsageContent({ user }: { user: User }) {
       <div className="usage-note">
         <Sticker name="lock" size={36} rotate={-5} flat decorative />
         <div>
-          <strong>Log được giữ {user.plan === "free" ? "7" : user.plan === "plus" ? "30" : "90"} ngày.</strong>
+          <strong>Log được giữ {plan.retentionDays} ngày.</strong>
           <p>
-            Bạn có thể tắt log nội dung trong phần gói dịch vụ. Số liệu token và độ trễ vẫn
-            được giữ để tính hạn mức.
+            Số liệu token và độ trễ được giữ để tính hạn mức. Nội dung request không được dùng
+            để huấn luyện mô hình.
           </p>
         </div>
-        <span className="mono">retention / {user.plan}</span>
+        <span className="mono">retention / {plan.name}</span>
       </div>
     </div>
   );

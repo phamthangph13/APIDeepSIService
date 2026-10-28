@@ -4,82 +4,141 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-import type { PlanId } from "../data/plans";
 import {
-  getSessionUser,
-  loginWithOAuth,
+  exchangeOAuthCode,
+  fetchMe,
   loginWithPassword,
-  logout as logoutStorage,
+  logout as logoutRequest,
   registerWithPassword,
-  seedDemo,
-  updatePlan as updatePlanStorage,
+  resetPassword as resetPasswordRequest,
+  type AuthOutcome,
   type User,
 } from "../lib/auth";
+import {
+  clearAccessToken,
+  getAccessToken,
+  refreshAccessToken,
+  setUnauthorizedHandler,
+} from "../lib/api";
 
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ user?: User; error?: string }>;
-  register: (
-    name: string,
-    email: string,
-    password: string,
-  ) => Promise<{ user?: User; error?: string }>;
-  loginWithProvider: (provider: "google" | "github") => User;
-  logout: () => void;
-  refresh: () => void;
-  setPlan: (plan: PlanId) => void;
+  login: (email: string, password: string) => Promise<AuthOutcome>;
+  register: (name: string, email: string, password: string) => Promise<AuthOutcome>;
+  logout: () => Promise<void>;
+  refresh: () => Promise<void>;
+  completeOAuth: (code: string) => Promise<AuthOutcome>;
+  resetPassword: (token: string, password: string) => Promise<AuthOutcome>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+let bootstrapPromise: Promise<User | null> | null = null;
+
+function bootstrapSession(): Promise<User | null> {
+  if (bootstrapPromise) return bootstrapPromise;
+  bootstrapPromise = (async () => {
+    try {
+      if (!getAccessToken() && !(await refreshAccessToken())) return null;
+      return await fetchMe();
+    } catch {
+      return null;
+    }
+  })();
+  return bootstrapPromise;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const epochRef = useRef(0);
+
+  const applySession = useCallback((nextUser: User) => {
+    epochRef.current += 1;
+    setUser(nextUser);
+  }, []);
 
   useEffect(() => {
-    seedDemo();
-    setUser(getSessionUser());
-    setLoading(false);
+    const epoch = epochRef.current;
+    void bootstrapSession().then((bootstrapped) => {
+      if (epochRef.current !== epoch) {
+        setLoading(false);
+        return;
+      }
+      if (bootstrapped) {
+        setUser(bootstrapped);
+      } else {
+        clearAccessToken();
+        setUser(null);
+      }
+      setLoading(false);
+    });
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const result = await loginWithPassword(email, password);
-    if (result.user) setUser(result.user);
-    return result;
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      epochRef.current += 1;
+      setUser(null);
+    });
+    return () => setUnauthorizedHandler(null);
   }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    const result = await registerWithPassword(name, email, password);
-    if (result.user) setUser(result.user);
-    return result;
-  }, []);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const result = await loginWithPassword(email, password);
+      if (result.accessToken && result.user) applySession(result.user);
+      return result;
+    },
+    [applySession],
+  );
 
-  const loginWithProvider = useCallback((provider: "google" | "github") => {
-    const nextUser = loginWithOAuth(provider);
-    setUser(nextUser);
-    return nextUser;
-  }, []);
+  const register = useCallback(
+    async (name: string, email: string, password: string) => {
+      const result = await registerWithPassword(name, email, password);
+      if (result.accessToken && result.user) applySession(result.user);
+      return result;
+    },
+    [applySession],
+  );
 
-  const logout = useCallback(() => {
-    logoutStorage();
+  const logout = useCallback(async () => {
+    epochRef.current += 1;
+    await logoutRequest();
     setUser(null);
   }, []);
 
-  const refresh = useCallback(() => {
-    setUser(getSessionUser());
-  }, []);
+  const refresh = useCallback(async () => {
+    try {
+      const fresh = await fetchMe();
+      applySession(fresh);
+    } catch {
+      clearAccessToken();
+      epochRef.current += 1;
+      setUser(null);
+    }
+  }, [applySession]);
 
-  const setPlan = useCallback(
-    (plan: PlanId) => {
-      if (!user) return;
-      const updated = updatePlanStorage(user.id, plan);
-      if (updated) setUser(updated);
+  const completeOAuth = useCallback(
+    async (code: string) => {
+      const result = await exchangeOAuthCode(code);
+      if (result.accessToken && result.user) applySession(result.user);
+      return result;
     },
-    [user],
+    [applySession],
+  );
+
+  const resetPassword = useCallback(
+    async (token: string, password: string) => {
+      const result = await resetPasswordRequest(token, password);
+      if (result.accessToken && result.user) applySession(result.user);
+      return result;
+    },
+    [applySession],
   );
 
   const value = useMemo(
@@ -88,12 +147,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       login,
       register,
-      loginWithProvider,
       logout,
       refresh,
-      setPlan,
+      completeOAuth,
+      resetPassword,
     }),
-    [user, loading, login, register, loginWithProvider, logout, refresh, setPlan],
+    [user, loading, login, register, logout, refresh, completeOAuth, resetPassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

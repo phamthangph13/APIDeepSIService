@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ButtonLink } from "../components/Button";
 import { FAQ } from "../components/FAQ";
@@ -6,21 +7,12 @@ import { PageShell } from "../components/PageShell";
 import { PricingCards } from "../components/PricingCards";
 import { SectionHead } from "../components/SectionHead";
 import { Sticker } from "../components/Sticker";
-import { PLANS } from "../data/plans";
+import { usePlans } from "../context/PlansContext";
+import type { Plan } from "../data/plans";
+import { SITE } from "../data/site";
 
-const COMPARE_ROWS: Array<{
-  label: string;
-  values: [string, string, string];
-  note?: string;
-}> = [
-  { label: "Giá mỗi tháng", values: ["0đ", "1.499.000đ", "2.499.000đ"] },
-  {
-    label: "Hạn mức token",
-    values: ["10.000 / ngày", "2.000.000 / tháng", "5.000.000 / tháng"],
-  },
+const STATIC_COMPARE_ROWS: Array<{ label: string; values: [string, string, string] }> = [
   { label: "Mô hình", values: ["M1 · E1", "S1 · M1 · V1 · E1", "Tất cả + beta"] },
-  { label: "API key", values: ["5", "20", "Không giới hạn"] },
-  { label: "Log yêu cầu", values: ["7 ngày", "30 ngày", "90 ngày"] },
   { label: "Ưu tiên xử lý", values: ["Tiêu chuẩn", "Ưu tiên", "Ưu tiên cao nhất"] },
   { label: "Streaming & JSON mode", values: ["Có", "Có", "Có"] },
   { label: "Tool calling", values: ["Cơ bản", "Đầy đủ", "Đầy đủ"] },
@@ -31,6 +23,21 @@ const COMPARE_ROWS: Array<{
   { label: "Hóa đơn VAT", values: ["—", "Có", "Có"] },
   { label: "Hợp đồng dịch vụ", values: ["—", "—", "Có"] },
 ];
+
+function buildCompareRows(plans: Plan[]) {
+  return [
+    { label: "Giá mỗi tháng", values: plans.map((plan) => plan.priceLabel) },
+    { label: "Hạn mức token", values: plans.map((plan) => plan.quotaLabel) },
+    {
+      label: "API key",
+      values: plans.map((plan) =>
+        Number.isFinite(plan.keyLimit) ? String(plan.keyLimit) : "Không giới hạn",
+      ),
+    },
+    { label: "Log yêu cầu", values: plans.map((plan) => `${plan.retentionDays} ngày`) },
+    ...STATIC_COMPARE_ROWS,
+  ];
+}
 
 const PRICING_FAQS = [
   {
@@ -55,11 +62,14 @@ const PRICING_FAQS = [
   },
   {
     q: "Tôi cần hóa đơn cho công ty thì sao?",
-    a: "Plus và Ultral đều hỗ trợ hóa đơn VAT. Với Ultral, chúng tôi cung cấp thêm hợp đồng dịch vụ và đầu mối hỗ trợ riêng. Gửi yêu cầu đến support@deepsi.space.",
+    a: `Plus và Ultral đều hỗ trợ hóa đơn VAT. Với Ultral, chúng tôi cung cấp thêm hợp đồng dịch vụ và đầu mối hỗ trợ riêng. Gửi yêu cầu đến ${SITE.supportEmail}.`,
   },
 ];
 
 export function Pricing() {
+  const { plans } = usePlans();
+  const compareRows = useMemo(() => buildCompareRows(plans), [plans]);
+
   return (
     <PageShell title="Bảng giá">
       <PageIntro
@@ -128,14 +138,14 @@ export function Pricing() {
           <div className="compare-table" data-reveal>
             <div className="compare-table__head">
               <span className="mono">Hạng mục</span>
-              {PLANS.map((plan) => (
+              {plans.map((plan) => (
                 <span key={plan.id} className="compare-table__plan">
                   <strong>{plan.name}</strong>
                   <em className="mono">{plan.priceLabel}</em>
                 </span>
               ))}
             </div>
-            {COMPARE_ROWS.map((row) => (
+            {compareRows.map((row) => (
               <div className="compare-table__row" key={row.label}>
                 <span className="compare-table__label">{row.label}</span>
                 {row.values.map((value, index) => (
@@ -219,7 +229,7 @@ export function Pricing() {
               <span className="cta__sticker-note mono">FREE / 0Đ</span>
             </div>
             <div className="cta__mini">
-              <span className="mono">service.deepsi.space</span>
+              <span className="mono">{SITE.domain}</span>
               <span className="mono">không cần thẻ</span>
             </div>
           </div>

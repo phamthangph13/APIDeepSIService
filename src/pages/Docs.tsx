@@ -251,7 +251,7 @@ export function Docs() {
             <Sticker name="code" size={64} rotate={-6} className="docs__margin-sticker" />
             <span className="mono docs__margin-note">base_url</span>
             <button type="button" className="docs__endpoint" onClick={handleCopyEndpoint}>
-              <code>api.service.deepsi.space/v1</code>
+              <code>{SITE.baseUrl.replace(/^https?:\/\//, "")}</code>
               <Sticker name="copy" size={17} flat decorative />
             </button>
           </aside>

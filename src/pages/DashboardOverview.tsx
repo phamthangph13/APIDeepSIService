@@ -1,14 +1,15 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ButtonLink } from "../components/Button";
+import { Button, ButtonLink } from "../components/Button";
 import { DashboardShell } from "../components/DashboardShell";
 import { Sparkline } from "../components/Sparkline";
 import { Sticker } from "../components/Sticker";
 import { useAuth } from "../context/AuthContext";
+import { usePlans } from "../context/PlansContext";
 import { useToast } from "../context/ToastContext";
-import { PLAN_BY_ID } from "../data/plans";
+import { SITE } from "../data/site";
 import type { User } from "../lib/auth";
-import { getApiKeys } from "../lib/auth";
+import { listApiKeys } from "../lib/auth";
 import {
   copyText,
   formatCompact,
@@ -19,11 +20,12 @@ import {
   maskKey,
 } from "../lib/format";
 import {
+  emptyUsageSummary,
   getRecentActivity,
-  getSparkline,
   getTodayUsage,
   getUsageSummary,
 } from "../lib/usage";
+import { useApiQuery } from "../lib/useApiQuery";
 
 export function DashboardOverview() {
   const { user } = useAuth();
@@ -42,16 +44,35 @@ export function DashboardOverview() {
 }
 
 function OverviewContent({ user }: { user: User }) {
-  const summary = useMemo(() => getUsageSummary(user, 30), [user]);
-  const today = useMemo(() => getTodayUsage(user), [user]);
-  const sparkline = useMemo(() => getSparkline(user), [user]);
-  const activity = useMemo(() => getRecentActivity(user), [user]);
-  const keys = getApiKeys(user.id);
-  const plan = PLAN_BY_ID[user.plan];
+  const { byId } = usePlans();
+  const { data, loading, error, reload } = useApiQuery(async () => {
+    const [summary, today, activity, keys] = await Promise.all([
+      getUsageSummary(30),
+      getTodayUsage(),
+      getRecentActivity(7),
+      listApiKeys(),
+    ]);
+    return { summary, today, activity, keys };
+  }, []);
+
+  const summary = data?.summary ?? emptyUsageSummary();
+  const today = data?.today.days.at(-1) ?? {
+    date: "",
+    label: "",
+    tokens: 0,
+    requests: 0,
+    input: 0,
+    output: 0,
+  };
+  const activity = data?.activity ?? [];
+  const keys = data?.keys ?? [];
+  const sparkline = useMemo(() => summary.days.map((day) => day.tokens), [summary.days]);
+  const plan = byId[user.plan] ?? byId.free;
   const { push } = useToast();
   const [params] = useSearchParams();
   const [welcome, setWelcome] = useState(params.get("welcome") === "1");
   const [copied, setCopied] = useState(false);
+  const activeKeys = keys.filter((key) => key.status === "active");
 
   const dateLabel = new Intl.DateTimeFormat("vi-VN", {
     weekday: "long",
@@ -61,7 +82,7 @@ function OverviewContent({ user }: { user: User }) {
   }).format(new Date());
 
   const handleCopy = async () => {
-    const ok = await copyText("https://api.service.deepsi.space/v1");
+    const ok = await copyText(SITE.baseUrl);
     setCopied(ok);
     push(ok ? "Đã sao chép base URL" : "Không thể sao chép", ok ? "success" : "error");
     window.setTimeout(() => setCopied(false), 2200);
@@ -73,7 +94,7 @@ function OverviewContent({ user }: { user: User }) {
         <div className="welcome-banner">
           <Sticker name="spark" size={52} rotate={-6} />
           <div>
-            <strong>Chào mừng đến DeepSI Agent.</strong>
+            <strong>Chào mừng đến {SITE.name}.</strong>
             <p>
               Tài khoản đã sẵn sàng. Tạo API key đầu tiên, dán base URL và gọi endpoint — mất
               khoảng bốn phút.
@@ -102,8 +123,8 @@ function OverviewContent({ user }: { user: User }) {
             {user.name.split(" ").slice(-1)[0]}, <em>hôm nay thế nào?</em>
           </h1>
           <p>
-            Đây là trạng thái agent của bạn trong 30 ngày gần nhất. Mọi thứ đang chạy bình
-            thường.
+            Đây là trạng thái agent của bạn trong 30 ngày gần nhất. Số liệu được đồng bộ từ máy
+            chủ DeepSI.
           </p>
         </div>
         <div className="dash-page__actions">
@@ -116,6 +137,24 @@ function OverviewContent({ user }: { user: User }) {
         </div>
       </header>
 
+      {error ? (
+        <div className="dash-empty">
+          <Sticker name="shield" size={90} rotate={-5} />
+          <h2>Không tải được dữ liệu client.</h2>
+          <p>{error}</p>
+          <Button variant="secondary" onClick={() => void reload()}>
+            Thử lại
+          </Button>
+        </div>
+      ) : null}
+      {loading && !data ? (
+        <div className="dash-empty">
+          <Sticker name="spark" size={90} rotate={-5} />
+          <h2>Đang tải dữ liệu…</h2>
+          <p>Kết nối tới máy chủ DeepSI.</p>
+        </div>
+      ) : null}
+
       <div className="dash-stats">
         <article className="dash-stat">
           <div className="dash-stat__top">
@@ -127,7 +166,11 @@ function OverviewContent({ user }: { user: User }) {
             / {formatCompact(plan.dailyTokens)} token · {formatNumber(today.requests)} request
           </span>
           <div className="dash-meter">
-            <span style={{ width: `${Math.min(100, (today.tokens / plan.dailyTokens) * 100)}%` }} />
+            <span
+              style={{
+                width: `${plan.dailyTokens > 0 ? Math.min(100, (today.tokens / plan.dailyTokens) * 100) : 0}%`,
+              }}
+            />
           </div>
         </article>
 
@@ -149,11 +192,9 @@ function OverviewContent({ user }: { user: User }) {
             <Sticker name="plane" size={34} rotate={-6} flat decorative />
           </div>
           <strong>{summary.p95Latency}ms</strong>
-          <span className="dash-stat__sub">
-            trung bình {summary.avgLatency}ms · 3 vùng
-          </span>
+          <span className="dash-stat__sub">trung bình {summary.avgLatency}ms</span>
           <span className="dash-stat__flag">
-            <span className="status-dot" /> trong ngưỡng
+            <span className="status-dot" /> theo log 30 ngày
           </span>
         </article>
 
@@ -163,9 +204,9 @@ function OverviewContent({ user }: { user: User }) {
             <Sticker name="shield" size={34} rotate={5} flat decorative />
           </div>
           <strong>{summary.errorRate.toFixed(2)}%</strong>
-          <span className="dash-stat__sub">chủ yếu là 429 do hạn mức key</span>
+          <span className="dash-stat__sub">tính trên toàn bộ request 30 ngày</span>
           <span className="dash-stat__flag dash-stat__flag--muted">
-            <Sticker name="check" size={15} flat decorative /> 0 sự cố 5xx
+            <Sticker name="check" size={15} flat decorative /> dữ liệu từ usage log
           </span>
         </article>
       </div>
@@ -185,7 +226,7 @@ function OverviewContent({ user }: { user: User }) {
           <div className="overview-chart">
             <Sparkline values={sparkline} width={760} height={170} />
             <div className="overview-chart__axis">
-              <span className="mono">14 ngày trước</span>
+              <span className="mono">30 ngày trước</span>
               <span className="mono">hôm nay</span>
             </div>
           </div>
@@ -246,7 +287,7 @@ function OverviewContent({ user }: { user: User }) {
             </header>
             <div className="endpoint-box">
               <span className="method method--post">POST</span>
-              <code>api.service.deepsi.space/v1</code>
+              <code>{SITE.baseUrl.replace(/^https?:\/\//, "")}</code>
               <button type="button" onClick={handleCopy} aria-label="Sao chép base URL">
                 <Sticker name={copied ? "check" : "copy"} size={20} flat decorative />
               </button>
@@ -291,11 +332,16 @@ function OverviewContent({ user }: { user: User }) {
                 </span>
                 <span>{formatNumber(row.tokens)}</span>
                 <span>{row.latency}ms</span>
-                <span className={`status-pill status-pill--${row.status === "200" ? "ok" : "warn"}`}>
+                <span className={`status-pill status-pill--${row.status < 400 ? "ok" : "warn"}`}>
                   {row.status}
                 </span>
               </div>
             ))}
+            {activity.length === 0 ? (
+              <div className="key-list__empty">
+                <p>Chưa có request nào. Gọi endpoint đầu tiên để thấy log tại đây.</p>
+              </div>
+            ) : null}
           </div>
         </section>
 
@@ -303,7 +349,7 @@ function OverviewContent({ user }: { user: User }) {
           <header className="dash-panel__head">
             <div>
               <span className="mono">API keys</span>
-              <h2>{keys.length} key đang hoạt động</h2>
+              <h2>{activeKeys.length} key đang hoạt động</h2>
             </div>
             <Link to="/dashboard/keys" className="text-link">
               Quản lý
@@ -316,9 +362,11 @@ function OverviewContent({ user }: { user: User }) {
                 <Sticker name="key" size={30} rotate={-4} flat decorative />
                 <div>
                   <strong>{key.name}</strong>
-                  <span className="mono">{maskKey(key.key)}</span>
+                  <span className="mono">{maskKey(key)}</span>
                 </div>
-                <span className={`status-pill status-pill--${key.status === "active" ? "ok" : "off"}`}>
+                <span
+                  className={`status-pill status-pill--${key.status === "active" ? "ok" : "off"}`}
+                >
                   {key.status === "active" ? "active" : "revoked"}
                 </span>
               </div>
@@ -376,8 +424,8 @@ function OverviewContent({ user }: { user: User }) {
       </div>
 
       <p className="dash-page__fine">
-        Tài khoản tạo ngày {formatDate(user.createdAt)} · Dữ liệu demo được lưu trong trình
-        duyệt của bạn.
+        Tài khoản tạo ngày {formatDate(user.createdAt)} · Dữ liệu được đồng bộ từ máy chủ
+        DeepSI.
       </p>
     </div>
   );

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { PLANS } from "../data/plans";
+import { usePlans } from "../context/PlansContext";
 import { Sticker } from "./Sticker";
 
 type PricingCardsProps = {
@@ -8,9 +8,11 @@ type PricingCardsProps = {
 };
 
 export function PricingCards({ compact = false, currentPlan }: PricingCardsProps) {
+  const { plans } = usePlans();
+
   return (
     <div className={`pricing-grid${compact ? " pricing-grid--compact" : ""}`}>
-      {PLANS.map((plan) => {
+      {plans.map((plan) => {
         const isCurrent = currentPlan === plan.id;
         return (
           <article

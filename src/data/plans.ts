@@ -15,6 +15,7 @@ export type Plan = {
   monthlyTokens: number;
   dailyTokens: number;
   keyLimit: number;
+  retentionDays: number;
   features: string[];
   notIncluded?: string[];
   cta: string;
@@ -36,6 +37,7 @@ export const PLANS: Plan[] = [
     monthlyTokens: 300_000,
     dailyTokens: 10_000,
     keyLimit: 5,
+    retentionDays: 7,
     features: [
       "10.000 token mỗi ngày",
       "5 API key miễn phí",
@@ -63,6 +65,7 @@ export const PLANS: Plan[] = [
     monthlyTokens: 2_000_000,
     dailyTokens: 70_000,
     keyLimit: 20,
+    retentionDays: 30,
     features: [
       "2.000.000 token mỗi tháng",
       "20 API key miễn phí",
@@ -89,6 +92,7 @@ export const PLANS: Plan[] = [
     monthlyTokens: 5_000_000,
     dailyTokens: 180_000,
     keyLimit: Number.POSITIVE_INFINITY,
+    retentionDays: 90,
     features: [
       "5.000.000 token mỗi tháng",
       "API key không giới hạn",

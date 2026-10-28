@@ -71,7 +71,7 @@ function LegalLayout({
           <article className="legal__body">
             <div className="legal__meta">
               <span className="mono">Hiệu lực từ {updated}</span>
-              <span className="mono">DeepSI / service.deepsi.space</span>
+              <span className="mono">DeepSI / {SITE.domain}</span>
             </div>
             {note ? (
               <div className="legal__note">
@@ -91,9 +91,9 @@ function LegalLayout({
             <div className="legal__foot">
               <Sticker name="shield" size={54} rotate={-5} flat decorative />
               <div>
-                <strong>Một dịch vụ của deepsi.space.</strong>
+                <strong>Một dịch vụ của {SITE.parent}.</strong>
                 <p>
-                  DeepSI Agent vận hành tại service.deepsi.space. Các câu hỏi về văn bản này
+                  DeepSI Agent vận hành tại {SITE.domain}. Các câu hỏi về văn bản này
                   được gửi đến <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
                 </p>
               </div>
@@ -132,7 +132,7 @@ export function LegalTerms() {
             <>
               <p>
                 DeepSI Agent là dịch vụ API mô hình ngôn ngữ vận hành tại{" "}
-                <strong>service.deepsi.space</strong>, thuộc deepsi.space. Dịch vụ cung cấp
+                <strong>{SITE.domain}</strong>, thuộc {SITE.parent}. Dịch vụ cung cấp
                 quyền truy cập vào các mô hình S1, M1, V1 và E1 thông qua giao diện tương thích
                 OpenAI.
               </p>
@@ -377,9 +377,10 @@ export function LegalPrivacy() {
           title: "Cookies và lưu trữ cục bộ",
           body: (
             <p>
-              Trang dịch vụ dùng localStorage để giữ phiên đăng nhập và dữ liệu demo của client.
-              Chúng tôi không dùng cookie quảng cáo của bên thứ ba. Bạn có thể xóa dữ liệu cục
-              bộ bất cứ lúc nào trong cài đặt trình duyệt.
+              Trang dịch vụ dùng sessionStorage để giữ access token trong phiên làm việc và
+              cookie httpOnly <code>deepsi_refresh</code> để duy trì đăng nhập. Chúng tôi không
+              dùng cookie quảng cáo của bên thứ ba. Bạn có thể đăng xuất hoặc xóa dữ liệu trình
+              duyệt bất cứ lúc nào.
             </p>
           ),
         },
@@ -394,7 +395,7 @@ export function LegalPrivacy() {
           ),
         },
       ]}
-      note="Bản demo này lưu tài khoản trong localStorage của trình duyệt. Không có dữ liệu nào được gửi đến máy chủ DeepSI."
+      note="Tài khoản và phiên đăng nhập được xử lý trên máy chủ DeepSI. Trình duyệt chỉ giữ access token trong phiên làm việc và cookie làm mới phiên."
     />
   );
 }
@@ -507,7 +508,7 @@ export function LegalSla() {
           ),
         },
       ]}
-      note="SLA này áp dụng cho dịch vụ tại service.deepsi.space. Các dịch vụ khác của deepsi.space có cam kết riêng."
+      note={`SLA này áp dụng cho dịch vụ tại ${SITE.domain}. Các dịch vụ khác của ${SITE.parent} có cam kết riêng.`}
     />
   );
 }
@@ -594,7 +595,7 @@ export function LegalSecurity() {
             <>
               <p>
                 Nếu phát hiện lỗ hổng, gửi mô tả và bước tái hiện đến{" "}
-                <a href={`mailto:security@deepsi.space`}>security@deepsi.space</a>. Chúng tôi
+                <a href={`mailto:${SITE.securityEmail}`}>{SITE.securityEmail}</a>. Chúng tôi
                 xác nhận trong 48 giờ, không theo đuổi pháp lý với nghiên cứu bảo mật thiện chí
                 và ghi nhận đóng góp nếu bạn đồng ý.
               </p>
@@ -618,14 +619,14 @@ export function LegalSecurity() {
           title: "Liên hệ bảo mật",
           body: (
             <p>
-              <a href="mailto:security@deepsi.space">security@deepsi.space</a> — cho báo cáo
+              <a href={`mailto:${SITE.securityEmail}`}>{SITE.securityEmail}</a> — cho báo cáo
               lỗ hổng. <a href={`mailto:${SITE.supportEmail}`}>{SITE.supportEmail}</a> — cho câu
               hỏi về cấu hình và tuân thủ.
             </p>
           ),
         },
       ]}
-      note="Trang này mô tả cam kết của dịch vụ. Bản demo chạy hoàn toàn trong trình duyệt và không gửi dữ liệu ra ngoài."
+      note="Trang này mô tả cam kết của dịch vụ. Dữ liệu tài khoản, API key và usage được lưu trên hạ tầng DeepSI và truyền qua kết nối TLS."
     />
   );
 }

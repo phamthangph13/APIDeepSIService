@@ -6,8 +6,9 @@ import { FormField } from "../components/FormField";
 import { OAuthButtons } from "../components/OAuthButtons";
 import { Sticker } from "../components/Sticker";
 import { useAuth } from "../context/AuthContext";
+import { usePlans } from "../context/PlansContext";
 import { useToast } from "../context/ToastContext";
-import { PLAN_BY_ID, type PlanId } from "../data/plans";
+import type { PlanId } from "../data/plans";
 
 const PLAN_IDS: PlanId[] = ["free", "plus", "ultral"];
 
@@ -27,13 +28,15 @@ export function Register() {
   const [show, setShow] = useState(false);
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const { user, register } = useAuth();
+  const { byId } = usePlans();
   const { push } = useToast();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const planParam = params.get("plan");
-  const plan = PLAN_IDS.includes(planParam as PlanId) ? PLAN_BY_ID[planParam as PlanId] : null;
+  const plan = PLAN_IDS.includes(planParam as PlanId) ? byId[planParam as PlanId] : null;
   const score = scorePassword(password);
 
   useEffect(() => {
@@ -43,6 +46,7 @@ export function Register() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
+    setNotice("");
     if (name.trim().length < 2) {
       setError("Nhập tên bạn muốn dùng trong client, ít nhất 2 ký tự.");
       return;
@@ -55,6 +59,10 @@ export function Register() {
       setError("Mật khẩu cần ít nhất 8 ký tự.");
       return;
     }
+    if (password.length > 72) {
+      setError("Mật khẩu không được dài quá 72 ký tự.");
+      return;
+    }
     if (!terms) {
       setError("Bạn cần đồng ý với điều khoản để tạo tài khoản.");
       return;
@@ -64,6 +72,10 @@ export function Register() {
     setBusy(false);
     if (result.error) {
       setError(result.error);
+      return;
+    }
+    if (result.requiresEmailVerification) {
+      setNotice(result.message ?? "Tài khoản đã được tạo. Kiểm tra email để xác nhận trước khi đăng nhập.");
       return;
     }
     push("Tài khoản đã được tạo", "success", "Tạo API key đầu tiên trong Client → API keys.");
@@ -173,6 +185,7 @@ export function Register() {
             {error}
           </p>
         ) : null}
+        {notice ? <p className="form-note">{notice}</p> : null}
 
         <Button type="submit" variant="primary" size="lg" full disabled={busy} icon="key">
           {busy ? "Đang tạo tài khoản…" : "Tạo tài khoản miễn phí"}

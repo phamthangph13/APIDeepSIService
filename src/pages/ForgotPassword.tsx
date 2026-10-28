@@ -5,18 +5,23 @@ import { Button } from "../components/Button";
 import { FormField } from "../components/FormField";
 import { Sticker } from "../components/Sticker";
 import { useToast } from "../context/ToastContext";
-import { DEMO_CREDENTIALS, requestPasswordReset } from "../lib/auth";
+import { requestPasswordReset } from "../lib/auth";
 
-type SentState = { token: string | null; exists: boolean; email: string } | null;
+type SentState = {
+  message: string;
+  debugToken?: string;
+  resetUrl?: string;
+  email: string;
+};
 
 export function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState<SentState>(null);
+  const [sent, setSent] = useState<SentState | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const { push } = useToast();
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -24,12 +29,21 @@ export function ForgotPassword() {
       return;
     }
     setBusy(true);
-    const result = requestPasswordReset(email);
+    const result = await requestPasswordReset(email);
     setBusy(false);
-    setSent({ ...result, email: email.trim().toLowerCase() });
-    if (result.exists) {
-      push("Đã tạo liên kết đặt lại", "success", "Liên kết có hiệu lực trong 30 phút.");
+    if (result.error) {
+      setError(result.error);
+      return;
     }
+    setSent({
+      message:
+        result.message ??
+        "Nếu email này có tài khoản, chúng tôi đã gửi liên kết đặt lại mật khẩu.",
+      debugToken: result.debugToken,
+      resetUrl: result.resetUrl,
+      email: email.trim().toLowerCase(),
+    });
+    push("Đã gửi yêu cầu đặt lại", "success", "Kiểm tra hộp thư và thư mục spam.");
   };
 
   return (
@@ -43,37 +57,25 @@ export function ForgotPassword() {
     >
       {sent ? (
         <div className="auth-result">
-          <Sticker name={sent.exists ? "check" : "search"} size={78} rotate={-6} />
-          <h2>{sent.exists ? "Kiểm tra email của bạn." : "Chưa tìm thấy tài khoản."}</h2>
-          {sent.exists ? (
-            <>
-              <p>
-                Trong môi trường production, một email chứa liên kết đặt lại sẽ được gửi đến{" "}
-                <strong>{sent.email}</strong>. Liên kết có hiệu lực trong 30 phút.
-              </p>
-              <div className="demo-reset">
-                <span className="mono">Demo / không gửi email thật</span>
-                <p>Bản demo chạy trong trình duyệt, nên liên kết được tạo ngay tại đây:</p>
-                {sent.token ? (
-                  <Link to={`/reset-password?token=${sent.token}`} className="btn btn--primary btn--md btn--full">
-                    <span>Đặt lại mật khẩu ngay</span>
-                    <Sticker name="arrow" size={20} rotate={-12} flat decorative />
-                  </Link>
-                ) : null}
-              </div>
-            </>
-          ) : (
-            <>
-              <p>
-                Email <strong>{sent.email}</strong> chưa có tài khoản DeepSI Agent. Bạn có thể
-                tạo tài khoản mới miễn phí — quá trình mất chưa đến một phút.
-              </p>
-              <Link to="/register" className="btn btn--primary btn--md btn--full">
-                <span>Tạo tài khoản miễn phí</span>
-                <Sticker name="key" size={20} rotate={-8} flat decorative />
+          <Sticker name="check" size={78} rotate={-6} />
+          <h2>Kiểm tra email của bạn.</h2>
+          <p>
+            {sent.message} Địa chỉ nhận: <strong>{sent.email}</strong>. Liên kết có hiệu lực
+            trong 30 phút.
+          </p>
+          {sent.resetUrl ? (
+            <div className="dev-reset">
+              <span className="mono">Môi trường phát triển / không gửi email thật</span>
+              <p>Máy chủ đang trả liên kết trực tiếp để bạn hoàn tất luồng đặt lại:</p>
+              <Link
+                to={new URL(sent.resetUrl).pathname + new URL(sent.resetUrl).search}
+                className="btn btn--primary btn--md btn--full"
+              >
+                <span>Đặt lại mật khẩu ngay</span>
+                <Sticker name="arrow" size={20} rotate={-12} flat decorative />
               </Link>
-            </>
-          )}
+            </div>
+          ) : null}
           <button type="button" className="auth-result__back" onClick={() => setSent(null)}>
             <Sticker name="arrow" size={18} rotate={-135} flat decorative />
             <span>Dùng email khác</span>
@@ -85,7 +87,7 @@ export function ForgotPassword() {
             <Sticker name="lock" size={64} rotate={-6} />
             <div>
               <span className="mono">Khôi phục tài khoản</span>
-              <p>Nhập email đã đăng ký. Chúng tôi sẽ tạo liên kết đặt lại mật khẩu.</p>
+              <p>Nhập email đã đăng ký. Chúng tôi sẽ gửi liên kết đặt lại mật khẩu.</p>
             </div>
           </div>
 
@@ -110,25 +112,9 @@ export function ForgotPassword() {
             ) : null}
 
             <Button type="submit" variant="primary" size="lg" full disabled={busy} icon="plane" iconSide="right">
-              {busy ? "Đang tạo liên kết…" : "Gửi liên kết đặt lại"}
+              {busy ? "Đang gửi…" : "Gửi liên kết đặt lại"}
             </Button>
           </form>
-
-          <button
-            type="button"
-            className="demo-card"
-            onClick={() => {
-              setEmail(DEMO_CREDENTIALS.email);
-              setError("");
-            }}
-          >
-            <Sticker name="user" size={38} rotate={-5} flat decorative />
-            <span>
-              <strong>Dùng email demo</strong>
-              <em className="mono">{DEMO_CREDENTIALS.email}</em>
-            </span>
-            <Sticker name="arrow" size={20} rotate={-15} flat decorative />
-          </button>
         </>
       )}
     </AuthLayout>

@@ -50,9 +50,8 @@ export function formatRelative(iso: string | null): string {
   return formatDate(iso);
 }
 
-export function maskKey(key: string): string {
-  if (key.length < 12) return "••••••••";
-  return `${key.slice(0, 9)}••••••••${key.slice(-4)}`;
+export function maskKey(key: { prefix: string; last4: string }): string {
+  return `${key.prefix}••••••••${key.last4}`;
 }
 
 export function initials(name: string): string {

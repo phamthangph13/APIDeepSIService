@@ -41,11 +41,14 @@ export function AccountCorner() {
 
   if (hidden) return null;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
     setOpen(false);
-    push("Đã đăng xuất khỏi DeepSI Agent", "info");
-    navigate("/");
+    try {
+      await logout();
+    } finally {
+      push("Đã đăng xuất khỏi DeepSI Agent", "info");
+      navigate("/");
+    }
   };
 
   return (
@@ -61,7 +64,7 @@ export function AccountCorner() {
           >
             <span className={`avatar avatar--${user.avatarColor}`}>{initials(user.name)}</span>
             <span className="account-chip__copy">
-              <span className="mono">Client</span>
+              <span className="mono">{user.role === "admin" ? "Admin" : "Client"}</span>
               <strong>{user.name}</strong>
             </span>
             <Sticker name="arrow" size={19} rotate={open ? -80 : 20} flat decorative />
@@ -91,7 +94,12 @@ export function AccountCorner() {
                   <span>Gói dịch vụ</span>
                 </Link>
               </div>
-              <button type="button" className="account-menu__logout" role="menuitem" onClick={handleLogout}>
+              <button
+                type="button"
+                className="account-menu__logout"
+                role="menuitem"
+                onClick={() => void handleLogout()}
+              >
                 <Sticker name="logout" size={22} flat decorative />
                 <span>Đăng xuất</span>
               </button>

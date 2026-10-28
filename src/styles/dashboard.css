@@ -1746,6 +1746,155 @@
   background: var(--paper-2);
 }
 
+.payment-order {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.payment-order__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: var(--paper-2);
+}
+
+.payment-order__summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.payment-order__summary .mono {
+  color: var(--muted-2);
+  font-size: 6.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.payment-order__summary strong {
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.payment-order__summary .status-pill {
+  align-self: flex-start;
+}
+
+.payment-note {
+  color: var(--muted);
+  font-size: 0.73rem;
+  line-height: 1.6;
+}
+
+.payment-note strong {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.payment-bank {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--paper-2);
+}
+
+.payment-bank__qr {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  background: var(--paper-3);
+}
+
+.payment-bank__qr img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #fff;
+}
+
+.payment-bank__qr .mono {
+  color: var(--muted-2);
+  font-size: 6.5px;
+  text-align: center;
+}
+
+.payment-bank__details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.payment-bank__line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--line);
+}
+
+.payment-bank__line > .mono {
+  flex: 0 0 118px;
+  color: var(--muted-2);
+  font-size: 6.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.payment-bank__line > strong {
+  min-width: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.payment-bank__line--content > strong {
+  font-size: 0.74rem;
+  word-break: break-all;
+}
+
+.payment-copy {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  flex: none;
+  margin-left: auto;
+}
+
+.payment-copy:hover {
+  border-color: var(--line);
+  background: var(--paper-3);
+}
+
+.key-row__value {
+  flex-wrap: wrap;
+}
+
+.key-row__hidden {
+  flex-basis: 100%;
+  color: var(--muted-2);
+  font-size: 6px;
+  letter-spacing: 0.04em;
+}
+
 /* ============================================================
    Responsive — dashboard
    ============================================================ */
@@ -2122,5 +2271,41 @@
 
   .billing-current__actions .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .payment-bank {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-bank__qr {
+    width: min(100%, 220px);
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .payment-order__summary {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .payment-bank {
+    padding: 12px;
+  }
+
+  .payment-bank__line {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 4px 8px;
+  }
+
+  .payment-bank__line > .mono {
+    flex-basis: 100%;
+  }
+
+  .payment-copy {
+    margin-left: 0;
   }
 }

@@ -289,47 +289,6 @@
   text-align: center;
 }
 
-.demo-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  margin-top: 17px;
-  padding: 9px 11px;
-  border: 1px dashed var(--line-strong);
-  border-radius: 4px;
-  background: transparent;
-  text-align: left;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.demo-card:hover {
-  border-color: var(--moss);
-  background: var(--paper-2);
-}
-
-.demo-card > span {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-
-.demo-card strong {
-  font-size: 0.77rem;
-  font-weight: 500;
-}
-
-.demo-card em {
-  overflow: hidden;
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 7.5px;
-  font-style: normal;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .plan-hint {
   display: flex;
   align-items: center;
@@ -412,19 +371,19 @@
   margin-top: 18px;
 }
 
-.demo-reset {
+.dev-reset {
   margin-top: 18px;
   padding: 14px;
   border: 1px dashed var(--line-strong);
   background: var(--paper-2);
 }
 
-.demo-reset > .mono {
+.dev-reset > .mono {
   color: var(--muted-2);
   font-size: 8px;
 }
 
-.demo-reset p {
+.dev-reset p {
   margin: 5px 0 11px;
   color: var(--muted);
   font-size: 0.76rem;

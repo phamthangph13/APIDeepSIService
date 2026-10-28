@@ -6,7 +6,6 @@ import { FormField } from "../components/FormField";
 import { Sticker } from "../components/Sticker";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import { resetPassword } from "../lib/auth";
 
 export function ResetPassword() {
   const [params] = useSearchParams();
@@ -17,7 +16,7 @@ export function ResetPassword() {
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const { refresh } = useAuth();
+  const { resetPassword } = useAuth();
   const { push } = useToast();
   const navigate = useNavigate();
 
@@ -32,6 +31,10 @@ export function ResetPassword() {
       setError("Mật khẩu cần ít nhất 8 ký tự.");
       return;
     }
+    if (password.length > 72) {
+      setError("Mật khẩu không được dài quá 72 ký tự.");
+      return;
+    }
     if (password !== confirm) {
       setError("Hai mật khẩu chưa khớp nhau.");
       return;
@@ -43,7 +46,6 @@ export function ResetPassword() {
       setError(result.error);
       return;
     }
-    refresh();
     push("Mật khẩu đã được đặt lại", "success", "Bạn đã được đăng nhập vào client.");
     navigate("/dashboard", { replace: true });
   };
@@ -132,8 +134,8 @@ export function ResetPassword() {
           {busy ? "Đang cập nhật…" : "Đặt lại mật khẩu"}
         </Button>
         <p className="auth-form__fine">
-          Sau khi đặt lại, mọi phiên cũ trên thiết bị khác nên được đăng xuất. Key API không bị
-          ảnh hưởng.
+          Sau khi đặt lại, mọi phiên cũ trên thiết bị khác được đăng xuất. Key API không bị ảnh
+          hưởng.
         </p>
       </form>
     </AuthLayout>

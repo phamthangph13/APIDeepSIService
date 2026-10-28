@@ -7,19 +7,20 @@ import { OAuthButtons } from "../components/OAuthButtons";
 import { Sticker } from "../components/Sticker";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import { DEMO_CREDENTIALS } from "../lib/auth";
 
 export function Login() {
+  const [params] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(() => params.get("oauth_error") ?? "");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const { user, login } = useAuth();
   const { push } = useToast();
   const navigate = useNavigate();
-  const [params] = useSearchParams();
-  const next = params.get("next") || "/dashboard";
+  const nextParam = params.get("next");
+  const next = nextParam?.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/dashboard";
 
   useEffect(() => {
     if (user) navigate(next, { replace: true });
@@ -28,6 +29,7 @@ export function Login() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
+    setNotice("");
     if (!email.trim() || !password) {
       setError("Nhập email và mật khẩu để tiếp tục.");
       return;
@@ -39,15 +41,12 @@ export function Login() {
       setError(result.error);
       return;
     }
+    if (result.requiresEmailVerification) {
+      setNotice(result.message ?? "Kiểm tra email để xác nhận tài khoản trước khi đăng nhập.");
+      return;
+    }
     push("Đã đăng nhập", "success", `Chào mừng trở lại, ${result.user?.name ?? "bạn"}.`);
     navigate(next, { replace: true });
-  };
-
-  const fillDemo = () => {
-    setEmail(DEMO_CREDENTIALS.email);
-    setPassword(DEMO_CREDENTIALS.password);
-    setError("");
-    push("Đã điền tài khoản demo", "info", "Bấm Đăng nhập để tiếp tục.");
   };
 
   return (
@@ -55,8 +54,7 @@ export function Login() {
       mode="login"
       footer={
         <p className="auth-switch">
-          Chưa có tài khoản?{" "}
-          <Link to="/register">Tạo tài khoản miễn phí</Link>
+          Chưa có tài khoản? <Link to="/register">Tạo tài khoản miễn phí</Link>
         </p>
       }
     >
@@ -101,13 +99,7 @@ export function Login() {
         />
 
         <div className="auth-form__row">
-          <label className="checkline">
-            <input type="checkbox" defaultChecked />
-            <span className="checkline__box">
-              <Sticker name="check" size={13} flat decorative />
-            </span>
-            <span>Giữ đăng nhập</span>
-          </label>
+          <span className="mono">Phiên đăng nhập được bảo vệ bằng cookie.</span>
           <Link to="/forgot-password" className="auth-form__link">
             Quên mật khẩu?
           </Link>
@@ -118,20 +110,12 @@ export function Login() {
             {error}
           </p>
         ) : null}
+        {notice ? <p className="form-note">{notice}</p> : null}
 
         <Button type="submit" variant="primary" size="lg" full disabled={busy} icon="arrow" iconSide="right">
           {busy ? "Đang đăng nhập…" : "Đăng nhập"}
         </Button>
       </form>
-
-      <button type="button" className="demo-card" onClick={fillDemo}>
-        <Sticker name="user" size={38} rotate={-5} flat decorative />
-        <span>
-          <strong>Dùng tài khoản demo</strong>
-          <em className="mono">{DEMO_CREDENTIALS.email} · {DEMO_CREDENTIALS.password}</em>
-        </span>
-        <Sticker name="arrow" size={20} rotate={-15} flat decorative />
-      </button>
     </AuthLayout>
   );
 }
