@@ -2,6 +2,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { PlansProvider } from "./context/PlansContext";
 import { ToastProvider } from "./context/ToastContext";
+import { AdminLogin } from "./pages/AdminLogin";
+import { AdminOrders } from "./pages/AdminOrders";
+import { AdminOverview } from "./pages/AdminOverview";
+import { AdminUsage } from "./pages/AdminUsage";
+import { AdminUsers } from "./pages/AdminUsers";
 import { DashboardBilling } from "./pages/DashboardBilling";
 import { DashboardKeys } from "./pages/DashboardKeys";
 import { DashboardOverview } from "./pages/DashboardOverview";
@@ -35,6 +40,12 @@ export function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/auth/callback" element={<OAuthCallback />} />
+
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminOverview />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/usage" element={<AdminUsage />} />
 
               <Route path="/dashboard" element={<DashboardOverview />} />
               <Route path="/dashboard/keys" element={<DashboardKeys />} />

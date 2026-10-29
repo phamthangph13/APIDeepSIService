@@ -1,0 +1,264 @@
+.admin-bar__mode,
+.admin-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-bar__mode {
+  color: var(--moss, #596b43);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-account__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.admin-account__copy strong {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-account__copy span {
+  color: var(--ink-soft, #77796f);
+  font-size: 10px;
+}
+
+.admin-kpi-strip,
+.admin-overview-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-kpi-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 18px 0;
+}
+
+.admin-kpi-strip > div,
+.admin-plan-list,
+.admin-table,
+.admin-user-tools,
+.admin-order-tools {
+  border: 1px solid var(--line, #e6e2d8);
+  border-radius: 16px;
+  background: var(--paper, #fffdf8);
+}
+
+.admin-kpi-strip > div {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+}
+
+.admin-kpi-strip .mono,
+.admin-plan-row__top .mono {
+  color: var(--ink-soft, #77796f);
+  font-size: 11px;
+}
+
+.admin-kpi-strip strong {
+  font-size: 20px;
+}
+
+.admin-overview-grid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  align-items: start;
+}
+
+.admin-plan-list {
+  display: grid;
+  gap: 20px;
+  padding: 20px;
+}
+
+.admin-plan-row__top,
+.admin-user-tools,
+.admin-order-tools,
+.admin-pagination,
+.admin-pagination > div,
+.admin-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-meter,
+.admin-plan-row__meter,
+.admin-plan-row .admin-meter,
+.admin-user-meter {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wash, #eeece5);
+}
+
+.admin-meter > span,
+.admin-plan-row .admin-meter > span,
+.admin-user-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--moss, #75845a);
+}
+
+.admin-table {
+  overflow-x: auto;
+}
+
+.admin-table__head,
+.admin-table__row {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  min-width: 760px;
+  padding: 14px 18px;
+}
+
+.admin-table__head {
+  border-bottom: 1px solid var(--line, #e6e2d8);
+  background: var(--wash, #f7f5ef);
+}
+
+.admin-table__row + .admin-table__row {
+  border-top: 1px solid var(--line, #eeece5);
+}
+
+.admin-users-grid {
+  grid-template-columns: minmax(180px, 1.5fr) 90px 100px 90px 120px 110px;
+}
+
+.admin-orders-grid {
+  grid-template-columns: minmax(150px, 1.3fr) 100px 105px 105px 90px 125px 125px;
+}
+
+.admin-user-cell,
+.admin-order-cell {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-user-cell strong,
+.admin-user-cell span,
+.admin-order-cell strong,
+.admin-order-cell span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-user-cell span,
+.admin-order-cell span,
+.admin-cell-text {
+  color: var(--ink-soft, #77796f);
+  font-size: 12px;
+}
+
+.admin-role-select,
+.admin-plan-select,
+.admin-filter-row input,
+.admin-filter-row select,
+.admin-user-tools input,
+.admin-user-tools select,
+.admin-order-tools select {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line, #e6e2d8);
+  border-radius: 10px;
+  background: var(--paper, #fffdf8);
+  color: inherit;
+  font: inherit;
+}
+
+.admin-filter-row {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin: 18px 0;
+}
+
+.admin-filter-row input {
+  flex: 1 1 260px;
+}
+
+.admin-user-tools,
+.admin-order-tools {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin: 18px 0;
+  padding: 12px;
+}
+
+.admin-user-tools > .mono,
+.admin-order-tools > .mono {
+  margin-right: auto;
+  color: var(--ink-soft, #77796f);
+  font-size: 11px;
+}
+
+.admin-pagination {
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.admin-pagination > .mono {
+  color: var(--ink-soft, #77796f);
+}
+
+.admin-pagination > div {
+  justify-content: flex-end;
+}
+
+.admin-plan-row {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-overview-grid .dash-panel {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .admin-bar__mode {
+    display: none;
+  }
+
+  .admin-kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-kpi-strip {
+    gap: 8px;
+  }
+
+  .admin-kpi-strip > div {
+    padding: 13px;
+  }
+
+  .admin-account__copy {
+    display: none;
+  }
+
+  .admin-user-tools,
+  .admin-order-tools {
+    align-items: stretch;
+  }
+
+  .admin-user-tools > *,
+  .admin-order-tools > * {
+    flex: 1 1 100%;
+  }
+}

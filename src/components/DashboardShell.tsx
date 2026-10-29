@@ -72,6 +72,10 @@ export function DashboardShell({ children, title, section }: DashboardShellProps
     return <Navigate to={`/login?next=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
+  if (user.role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+
   const plan = byId[user.plan] ?? byId.free;
 
   const handleLogout = async () => {

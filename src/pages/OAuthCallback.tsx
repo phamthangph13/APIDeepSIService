@@ -30,7 +30,13 @@ export function OAuthCallback() {
     }
     void completeOAuth(code).then((result) => {
       if (result.accessToken && result.user) {
-        navigate(next, { replace: true });
+        const target =
+          result.user.role === "admin"
+            ? "/admin"
+            : next.startsWith("/admin")
+              ? "/dashboard"
+              : next;
+        navigate(target, { replace: true });
         return;
       }
       setError(result.error ?? "Không thể hoàn tất đăng nhập OAuth.");

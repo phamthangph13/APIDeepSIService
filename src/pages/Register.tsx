@@ -40,7 +40,7 @@ export function Register() {
   const score = scorePassword(password);
 
   useEffect(() => {
-    if (user) navigate("/dashboard", { replace: true });
+    if (user) navigate(user.role === "admin" ? "/admin" : "/dashboard", { replace: true });
   }, [user, navigate]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

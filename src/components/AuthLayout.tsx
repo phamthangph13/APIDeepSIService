@@ -4,7 +4,7 @@ import { SITE } from "../data/site";
 import { Logo } from "./Logo";
 import { Sticker } from "./Sticker";
 
-export type AuthMode = "login" | "register" | "forgot" | "reset" | "oauth" | "verify";
+export type AuthMode = "login" | "register" | "forgot" | "reset" | "oauth" | "verify" | "admin";
 
 const COPY: Record<
   AuthMode,
@@ -64,6 +64,14 @@ const COPY: Record<
     quote: "Email đúng người. Tài khoản đúng chủ.",
     quoteNote: "Liên kết xác nhận có thời hạn.",
     asideLabel: "Verify / 05",
+  },
+  admin: {
+    eyebrow: "Admin / Đăng nhập",
+    title: "Khu vực quản trị.",
+    lede: "Đăng nhập bằng tài khoản có vai trò admin để quản lý người dùng, đơn hàng và usage toàn hệ thống.",
+    quote: "Quyền truy cập đi kèm trách nhiệm. Mọi thay đổi đều có dấu vết.",
+    quoteNote: "Chỉ tài khoản admin được phép truy cập.",
+    asideLabel: "Admin console / 07",
   },
 };
 

@@ -21,9 +21,13 @@ export function Login() {
   const navigate = useNavigate();
   const nextParam = params.get("next");
   const next = nextParam?.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/dashboard";
+  const destinationFor = (role: string | undefined) => {
+    if (role === "admin") return "/admin";
+    return next.startsWith("/admin") ? "/dashboard" : next;
+  };
 
   useEffect(() => {
-    if (user) navigate(next, { replace: true });
+    if (user) navigate(destinationFor(user.role), { replace: true });
   }, [user, next, navigate]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -46,7 +50,7 @@ export function Login() {
       return;
     }
     push("Đã đăng nhập", "success", `Chào mừng trở lại, ${result.user?.name ?? "bạn"}.`);
-    navigate(next, { replace: true });
+    navigate(destinationFor(result.user?.role), { replace: true });
   };
 
   return (
@@ -55,6 +59,8 @@ export function Login() {
       footer={
         <p className="auth-switch">
           Chưa có tài khoản? <Link to="/register">Tạo tài khoản miễn phí</Link>
+          <br />
+          Quản trị viên? <Link to="/admin/login">Đăng nhập admin</Link>
         </p>
       }
     >

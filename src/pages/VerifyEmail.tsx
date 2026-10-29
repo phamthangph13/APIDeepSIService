@@ -44,13 +44,16 @@ export function VerifyEmail() {
     setMessage(result.message ?? result.error ?? "Đã xử lý yêu cầu.");
   };
 
+  const home = user?.role === "admin" ? "/admin" : "/dashboard";
+  const homeLabel = user?.role === "admin" ? "Vào admin console" : "Vào client";
+
   return (
     <AuthLayout
       mode="verify"
       footer={
         <p className="auth-switch">
           {user ? (
-            <Link to="/dashboard">Vào client</Link>
+            <Link to={home}>{homeLabel}</Link>
           ) : (
             <Link to="/login">Đăng nhập</Link>
           )}
@@ -68,8 +71,8 @@ export function VerifyEmail() {
         </h2>
         <p>{message}</p>
         {state === "ok" ? (
-          <ButtonLink to={user ? "/dashboard" : "/login"} variant="primary" size="md" full icon="arrow" iconSide="right">
-            {user ? "Vào client" : "Đăng nhập ngay"}
+          <ButtonLink to={user ? home : "/login"} variant="primary" size="md" full icon="arrow" iconSide="right">
+            {user ? homeLabel : "Đăng nhập ngay"}
           </ButtonLink>
         ) : null}
         {state === "error" ? (

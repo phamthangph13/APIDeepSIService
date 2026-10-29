@@ -46,8 +46,13 @@ export function ResetPassword() {
       setError(result.error);
       return;
     }
-    push("Mật khẩu đã được đặt lại", "success", "Bạn đã được đăng nhập vào client.");
-    navigate("/dashboard", { replace: true });
+    const isAdmin = result.user?.role === "admin";
+    push(
+      "Mật khẩu đã được đặt lại",
+      "success",
+      isAdmin ? "Bạn đã được đăng nhập vào admin console." : "Bạn đã được đăng nhập vào client.",
+    );
+    navigate(isAdmin ? "/admin" : "/dashboard", { replace: true });
   };
 
   return (

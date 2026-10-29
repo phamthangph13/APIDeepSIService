@@ -11,6 +11,7 @@ const HIDDEN_PREFIXES = [
   "/forgot-password",
   "/reset-password",
   "/dashboard",
+  "/admin",
 ];
 
 export function AccountCorner() {
