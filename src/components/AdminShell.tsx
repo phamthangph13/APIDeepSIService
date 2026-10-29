@@ -51,7 +51,7 @@ export function AdminShell({ children, title, section }: AdminShellProps) {
   if (!user) {
     return (
       <Navigate
-        to={`/admin/login?next=${encodeURIComponent(location.pathname + location.search)}`}
+        to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`}
         replace
       />
     );
@@ -64,7 +64,7 @@ export function AdminShell({ children, title, section }: AdminShellProps) {
   const handleLogout = async () => {
     await logout();
     push("Đã đăng xuất khỏi admin console", "info");
-    navigate("/admin/login");
+    navigate("/login");
   };
 
   return (

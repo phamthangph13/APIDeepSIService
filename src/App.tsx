@@ -1,8 +1,7 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { PlansProvider } from "./context/PlansContext";
 import { ToastProvider } from "./context/ToastContext";
-import { AdminLogin } from "./pages/AdminLogin";
 import { AdminOrders } from "./pages/AdminOrders";
 import { AdminOverview } from "./pages/AdminOverview";
 import { AdminUsage } from "./pages/AdminUsage";
@@ -41,7 +40,7 @@ export function App() {
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/auth/callback" element={<OAuthCallback />} />
 
-              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/login" element={<Navigate to="/login?next=%2Fadmin" replace />} />
               <Route path="/admin" element={<AdminOverview />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/orders" element={<AdminOrders />} />

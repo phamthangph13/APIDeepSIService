@@ -22,7 +22,7 @@ export function Login() {
   const nextParam = params.get("next");
   const next = nextParam?.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/dashboard";
   const destinationFor = (role: string | undefined) => {
-    if (role === "admin") return "/admin";
+    if (role === "admin") return next.startsWith("/admin") ? next : "/admin";
     return next.startsWith("/admin") ? "/dashboard" : next;
   };
 
@@ -59,8 +59,6 @@ export function Login() {
       footer={
         <p className="auth-switch">
           Chưa có tài khoản? <Link to="/register">Tạo tài khoản miễn phí</Link>
-          <br />
-          Quản trị viên? <Link to="/admin/login">Đăng nhập admin</Link>
         </p>
       }
     >
